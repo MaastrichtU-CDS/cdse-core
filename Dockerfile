@@ -6,7 +6,9 @@ RUN mkdir /app
 WORKDIR /app
 COPY requirements.txt /app/
 
+RUN pipenv install && pipenv run pip freeze > requirements.txt
 RUN pip install -r requirements.txt
+
 COPY . /app/
 
 EXPOSE 8000
