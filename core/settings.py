@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)x!wszkl9dw$3)o!6dfz#4uz(_^k7(x#_&rs*27brtf71v%3k+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.100.9']
 
 
 # Application definition
@@ -54,7 +54,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
-TEST_OUTPUT_FILE_NAME = 'result.xml'
+TEST_OUTPUT_FILE_NAME = 'result.xml' \
+                        ''
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
