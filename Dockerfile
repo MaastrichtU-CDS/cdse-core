@@ -4,6 +4,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 RUN mkdir /app
+run mkdir /app/static
+
 WORKDIR /app
 COPY . /app/
 
