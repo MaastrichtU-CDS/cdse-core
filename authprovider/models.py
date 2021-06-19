@@ -46,9 +46,7 @@ class CustomOIDCAuthenticationBackend(OIDCAuthenticationBackend):
 
     def verify_claims(self, claims):
         verified = super(CustomOIDCAuthenticationBackend, self).verify_claims(claims)
-        has_required_role = AuthProviderUtils.check_role_exist_in_claim(['it_administrator', 'mdr_regulator',
-                                                                         'medical_professional',
-                                                                         'super_admin'], claims)
+        has_required_role = AuthProviderUtils.check_role_exist_in_claim(list(RolesAndPermissions.GROUPS.keys()), claims)
         return verified and has_required_role
 
     @staticmethod
