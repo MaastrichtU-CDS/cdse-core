@@ -81,8 +81,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
-TEST_OUTPUT_FILE_NAME = 'result.xml' \
-                        ''
+TEST_OUTPUT_FILE_NAME = 'result.xml'
 
 OIDC_OP_LOGOUT_ENDPOINT = "http://localhost:8080/auth/realms/master/protocol/openid-connect/logout"
 LOGOUT_REDIRECT_URL = "http://localhost:8000/"
@@ -99,7 +98,7 @@ OIDC_OP_LOGOUT_URL_METHOD = 'authprovider.provider_logout'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, '../cdse-core/templates')],
+        'DIRS': [os.path.join(BASE_DIR, './templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
