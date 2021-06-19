@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   web:
-    build: .
+    image: lery/cdse-core:latest
     entrypoint: ./docker-entrypoint.sh
     expose:
       - 8000
