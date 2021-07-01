@@ -18,7 +18,7 @@ static/admin/
 result.xml
 # Package files
 *.jar
-
+db.sqlite3
 # Maven
 target/
 dist/
