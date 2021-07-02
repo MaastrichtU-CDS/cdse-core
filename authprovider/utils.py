@@ -7,4 +7,3 @@ class AuthProviderUtils:
                 return True
 
         return False
-

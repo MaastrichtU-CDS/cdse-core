@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, Permission
 from authprovider.models import RolesAndPermissions
 import logging
 
+
 class Command(BaseCommand):
     help = "Creates default permission groups for users"
 
@@ -26,7 +27,8 @@ class Command(BaseCommand):
                         try:
                             model_add_perm = Permission.objects.get(name=name)
                         except Permission.DoesNotExist:
-                            logging.warning("Permission not found with name '{}'.".format(name))
+                            logging.warning(
+                                "Permission not found with name '{}'.".format(name))
                             continue
 
                         new_group.permissions.add(model_add_perm)
