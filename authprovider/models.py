@@ -45,16 +45,21 @@ class CustomOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         return user
 
     def verify_claims(self, claims):
-        verified = super(CustomOIDCAuthenticationBackend, self).verify_claims(claims)
-        has_required_role = AuthProviderUtils.check_role_exist_in_claim(list(RolesAndPermissions.GROUPS.keys()), claims)
+        verified = super(
+            CustomOIDCAuthenticationBackend,
+            self).verify_claims(claims)
+        has_required_role = AuthProviderUtils.check_role_exist_in_claim(
+            list(RolesAndPermissions.GROUPS.keys()), claims)
         return verified and has_required_role
 
     @staticmethod
     def default_user_settings(user, claims):
         user.first_name = claims.get('given_name', '')
         user.last_name = claims.get('family_name', '')
-        user.is_superuser = AuthProviderUtils.check_role_exist_in_claim(['super_admin'], claims)
-        user.is_staff = AuthProviderUtils.check_role_exist_in_claim(list(RolesAndPermissions.GROUPS.keys()), claims)
+        user.is_superuser = AuthProviderUtils.check_role_exist_in_claim(
+            ['super_admin'], claims)
+        user.is_staff = AuthProviderUtils.check_role_exist_in_claim(
+            list(RolesAndPermissions.GROUPS.keys()), claims)
         return
 
     @staticmethod
@@ -65,7 +70,7 @@ class CustomOIDCAuthenticationBackend(OIDCAuthenticationBackend):
                     existing_group = Group.objects.get(name=role)
                     existing_group.user_set.add(user)
                 except Group.DoesNotExist:
-                    logging.warning("Role from claim doesn't exist in groups, please run create_group command "
-                                    "first!")
+                    logging.warning(
+                        "Role from claim doesn't exist in groups, please run create_group command "
+                        "first!")
                     continue
-
