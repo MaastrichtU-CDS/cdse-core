@@ -71,6 +71,5 @@ class CustomOIDCAuthenticationBackend(OIDCAuthenticationBackend):
                     existing_group.user_set.add(user)
                 except Group.DoesNotExist:
                     logging.warning(
-                        "Role from claim doesn't exist in groups, please run create_group command "
-                        "first!")
+                        "Role from claim doesn't exist in groups, please run create_group command")
                     continue
