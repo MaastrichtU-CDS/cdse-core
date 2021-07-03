@@ -1,4 +1,4 @@
 from django.contrib import admin
 
 # Register your models here.
-admin.site.site_header = 'CDSE CORE'
+admin.site.site_header = "CDSE CORE"

@@ -8,14 +8,9 @@ if [ -n "$touched_python_files" ]; then
       --max-line-length=150 \
     "
 
-    output=$(autopep8 -d $options "${touched_python_files[@]}")
+    output=$(black "${touched_python_files[@]}")
     status=$?
-
-    if [ -n "$output" ]; then
-        autopep8 -i -j 0 $options "${touched_python_files[@]}"
-        echo ">>> autopep8 edited some files <<<"
-        exit 1
-    fi
+    echo output
 fi
 
 exit $status
