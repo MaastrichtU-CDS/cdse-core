@@ -1,16 +1,8 @@
 #!/bin/sh
 
-status=0
 touched_python_files=$(git diff --cached --name-only | grep -E '\.py$')
 if [ -n "$touched_python_files" ]; then
-    options="\
-      --ignore=E26 \
-      --max-line-length=150 \
-    "
-
-    output=$(black "${touched_python_files[@]}")
-    status=$?
-    echo output
+    pipenv run black "."
 fi
 
-exit $status
+exit 0
