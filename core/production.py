@@ -3,7 +3,7 @@ import os
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
-DEBUG = int(os.environ.get("DEBUG", default=0))
+DEBUG = int(os.environ.get("DEBUG", default=False))
 
 
 DATABASES = {
@@ -19,6 +19,10 @@ DATABASES = {
     }
 }
 
+MIDDLEWARE = MIDDLEWARE + [
+    "mozilla_django_oidc.middleware.SessionRefresh",
+]
+
 OIDC_OP_LOGOUT_ENDPOINT = os.environ.get("OIDC_OP_LOGOUT_ENDPOINT", "")
 LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL", "")
 OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get("OIDC_OP_AUTHORIZATION_ENDPOINT", "")
@@ -30,3 +34,5 @@ OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET", "")
 OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_RP_SIGN_ALGO", "")
 OIDC_RP_SCOPES = os.environ.get("OIDC_RP_SCOPES", "")
 OIDC_OP_LOGOUT_URL_METHOD = os.environ.get("OIDC_OP_LOGOUT_URL_METHOD", "")
+
+AUTHENTICATION_BACKENDS = ("authprovider.models.CustomOIDCAuthenticationBackend",)
