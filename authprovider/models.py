@@ -14,7 +14,6 @@ class RolesAndPermissions:
             "user": ["add", "delete", "change", "view"],
             "content type": ["add", "delete", "change", "view"],
             "session": ["add", "delete", "change", "view"],
-
             "datasource": ["add", "delete", "change", "view"],
             "predictionmodel": ["add", "delete", "change", "view"],
         },
@@ -45,31 +44,33 @@ class CustomOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         return user
 
     def verify_claims(self, claims):
-        verified = super(
-            CustomOIDCAuthenticationBackend,
-            self).verify_claims(claims)
+        verified = super(CustomOIDCAuthenticationBackend, self).verify_claims(claims)
         has_required_role = AuthProviderUtils.check_role_exist_in_claim(
-            list(RolesAndPermissions.GROUPS.keys()), claims)
+            list(RolesAndPermissions.GROUPS.keys()), claims
+        )
         return verified and has_required_role
 
     @staticmethod
     def default_user_settings(user, claims):
-        user.first_name = claims.get('given_name', '')
-        user.last_name = claims.get('family_name', '')
+        user.first_name = claims.get("given_name", "")
+        user.last_name = claims.get("family_name", "")
         user.is_superuser = AuthProviderUtils.check_role_exist_in_claim(
-            ['super_admin'], claims)
+            ["super_admin"], claims
+        )
         user.is_staff = AuthProviderUtils.check_role_exist_in_claim(
-            list(RolesAndPermissions.GROUPS.keys()), claims)
+            list(RolesAndPermissions.GROUPS.keys()), claims
+        )
         return
 
     @staticmethod
     def default_group_settings(user, claims):
-        for role in claims.get('realm_access').get('roles', []):
+        for role in claims.get("realm_access").get("roles", []):
             if role in list(RolesAndPermissions.GROUPS.keys()):
                 try:
                     existing_group = Group.objects.get(name=role)
                     existing_group.user_set.add(user)
                 except Group.DoesNotExist:
                     logging.warning(
-                        "Role from claim doesn't exist in groups, please run create_group command")
+                        "Role from claim doesn't exist in groups, please run create_group command"
+                    )
                     continue
