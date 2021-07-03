@@ -18,7 +18,9 @@ class Command(BaseCommand):
             if created is True:
                 for app_model in RolesAndPermissions.GROUPS[group_name]:
                     # Loop permissions in group/model
-                    for permission_name in RolesAndPermissions.GROUPS[group_name][app_model]:
+                    for permission_name in RolesAndPermissions.GROUPS[group_name][
+                        app_model
+                    ]:
 
                         # Generate permission name as Django would generate it
                         name = "Can {} {}".format(permission_name, app_model)
@@ -28,7 +30,8 @@ class Command(BaseCommand):
                             model_add_perm = Permission.objects.get(name=name)
                         except Permission.DoesNotExist:
                             logging.warning(
-                                "Permission not found with name '{}'.".format(name))
+                                "Permission not found with name '{}'.".format(name)
+                            )
                             continue
 
                         new_group.permissions.add(model_add_perm)
