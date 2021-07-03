@@ -11,17 +11,19 @@ class TestFhirEndpointAdmin(TestCase):
 
     def setUp(self):
         User.objects.create_superuser("admin", "admin@example.com", "Password123")
-
-    def create_fhir_endpoint(self, name, description, full_url) -> TemplateResponse:
         self.client = Client()
         self.client.login(username="admin", password="Password123")
 
+    def tearDown(self):
+        self.client.logout()
+
+    def create_fhir_endpoint(self, name, description, full_url) -> TemplateResponse:
         response = self.client.post(
             "/admin/datasource/fhirendpoint/add/",
             {"name": name, "description": description, "full_url": full_url},
             follow=True,
         )
-        self.client.logout()
+
         return response
 
     def test_add_fhir_endpoint_trough_form(self):
