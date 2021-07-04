@@ -11,11 +11,11 @@ class FhirEndpointAdmin(admin.ModelAdmin):
     list_display = ("name", "full_url", "is_default")
     search_fields = ("name", "full_url")
 
-    def response_change(self, request, obj):
+    def response_change(self, request, form_obj):
         if "_test" in request.POST:
 
             fhir_client = client.FHIRClient(
-                settings={"app_id": obj.name, "api_base": obj.full_url}
+                settings={"app_id": form_obj.name, "api_base": form_obj.full_url}
             )
 
             try:
@@ -40,19 +40,19 @@ class FhirEndpointAdmin(admin.ModelAdmin):
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Endpoint authorization error, please check " "account.",
+                            "Endpoint authorization error, please check account.",
                         )
                     if ex.response.status_code == 403:
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Endpoint permission error, please roles and " "rights.",
+                            "Endpoint permission error, please roles and rights.",
                         )
                     if ex.response.status_code == 404:
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Endpoint not found error, please check provided " "url.",
+                            "Endpoint not found error, please check provided url.",
                         )
                 else:
                     messages.add_message(
