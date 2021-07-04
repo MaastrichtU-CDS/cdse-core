@@ -14,6 +14,9 @@ class FhirEndpoint(models.Model):
     )
     is_default = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.name
+
     def clean(self):
         if self.is_default:
             active = FhirEndpoint.objects.filter(is_default=True).exclude(pk=self.pk)

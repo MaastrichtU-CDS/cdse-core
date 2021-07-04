@@ -26,7 +26,7 @@ class TestFhirEndpointAdmin(TestCase):
 
         return response
 
-    def test_add_fhir_endpoint_form(self):
+    def test_add_fhir_endpoint(self):
         self.create_fhir_endpoint(self.name, self.description, self.full_url)
 
         fhir_obj = FhirEndpoint.objects.filter(pk=1).exists()
