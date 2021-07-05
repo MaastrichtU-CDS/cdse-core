@@ -71,7 +71,7 @@ class FhirEndpointAdmin(admin.ModelAdmin):
 
             messages.add_message(request, messages.INFO, "Endpoint test success!")
             return HttpResponseRedirect(".")
-        return super().response_change(request, object)
+        return super().response_change(request, form_obj)
 
 
 admin.site.register(FhirEndpoint, FhirEndpointAdmin)
