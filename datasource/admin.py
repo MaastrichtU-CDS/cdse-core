@@ -29,13 +29,22 @@ class FhirEndpointAdmin(admin.ModelAdmin):
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "Endpoint version is not supported error, please check "
+                    "Endpoint version not supported error, please check "
                     "fhir version.",
                 )
                 return HttpResponseRedirect(".")
 
             except Exception as ex:
-                if hasattr(ex, "response"):
+                if (
+                    hasattr(ex, "response")
+                    and hasattr(ex.response, "status_code")
+                    and ex.response.status_code
+                    in [
+                        401,
+                        403,
+                        404,
+                    ]
+                ):
                     if ex.response.status_code == 401:
                         messages.add_message(
                             request,
@@ -56,13 +65,13 @@ class FhirEndpointAdmin(admin.ModelAdmin):
                         )
                 else:
                     messages.add_message(
-                        request, messages.ERROR, "Unknown error while testing endpoint."
+                        request, messages.ERROR, "Unknown error, is this a valid url?"
                     )
-
                 return HttpResponseRedirect(".")
 
-        messages.add_message(request, messages.INFO, "Endpoint test success!")
-        return HttpResponseRedirect(".")
+            messages.add_message(request, messages.INFO, "Endpoint test success!")
+            return HttpResponseRedirect(".")
+        return super().response_change(request, object)
 
 
 admin.site.register(FhirEndpoint, FhirEndpointAdmin)
