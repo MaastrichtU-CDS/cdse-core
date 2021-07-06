@@ -1,9 +1,11 @@
 from django.test import TestCase
+
+from datasource.exceptions import FHIRIncompatibleVersionException
 from datasource.models import FhirEndpoint
 from django.core.exceptions import ValidationError
 
 
-class TestFhirEndpoint(TestCase):
+class TestFhirEndpointModel(TestCase):
     def test_create_endpoint(self):
         name = "fhir_obj"
         description = "this is my test"
@@ -24,3 +26,12 @@ class TestFhirEndpoint(TestCase):
         fhir_obj_two = FhirEndpoint.objects.create(name="fhir_two", is_default=True)
         self.assertEqual(fhir_obj_one.is_default, True)
         self.assertRaises(ValidationError, fhir_obj_two.clean)
+
+    def test_unsupported_fhir_versions(self):
+        test_version = "1.0.3"
+        with self.assertRaises(FHIRIncompatibleVersionException):
+            FhirEndpoint.supported_version_check(test_version)
+
+    def test_supported_fhir_versions(self):
+        test_version = "4"
+        self.assertTrue(FhirEndpoint.supported_version_check(test_version))

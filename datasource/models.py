@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from datasource import constants
 from datasource.exceptions import FHIRIncompatibleVersionException
 
 
@@ -21,14 +22,12 @@ class FhirEndpoint(models.Model):
         if self.is_default:
             active = FhirEndpoint.objects.filter(is_default=True).exclude(pk=self.pk)
             if active.exists():
-                raise ValidationError(
-                    "An other endpoint is default, please disable that one first"
-                )
+                raise ValidationError(constants.CONSTRAINT_ERROR_DEFAULT_FIELD)
 
     @staticmethod
-    def supported_version_check(found_version: str) -> bool:
-        major_version = found_version.split(".")[0]
+    def supported_version_check(version: str) -> bool:
+        major_version = version.split(".")[0]
 
         if major_version not in FhirEndpoint.supported_major_versions:
             raise FHIRIncompatibleVersionException(major_version)
-        pass
+        return True

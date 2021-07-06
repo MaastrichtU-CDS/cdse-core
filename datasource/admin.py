@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from fhirclient import client
 from fhirclient.models import capabilitystatement
+
+from datasource import constants
 from datasource.models import FhirEndpoint, FHIRIncompatibleVersionException
 from django.contrib import messages
 
@@ -28,9 +30,8 @@ class FhirEndpointAdmin(admin.ModelAdmin):
             except FHIRIncompatibleVersionException:
                 messages.add_message(
                     request,
-                    messages.ERROR,
-                    "Endpoint version not supported error, please check "
-                    "fhir version.",
+                    messages.WARNING,
+                    constants.TEST_ERROR_VERSION,
                 )
                 return HttpResponseRedirect(".")
 
@@ -49,27 +50,27 @@ class FhirEndpointAdmin(admin.ModelAdmin):
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Endpoint authorization error, please check account.",
+                            constants.TEST_ERROR_401,
                         )
                     if ex.response.status_code == 403:
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Endpoint permission error, please roles and rights.",
+                            constants.TEST_ERROR_403,
                         )
                     if ex.response.status_code == 404:
                         messages.add_message(
                             request,
                             messages.ERROR,
-                            "Endpoint not found error, please check provided url.",
+                            constants.TEST_ERROR_404,
                         )
                 else:
                     messages.add_message(
-                        request, messages.ERROR, "Unknown error, is this a valid url?"
+                        request, messages.ERROR, constants.TEST_ERROR_UNKNOWN
                     )
                 return HttpResponseRedirect(".")
 
-            messages.add_message(request, messages.INFO, "Endpoint test success!")
+            messages.add_message(request, messages.INFO, constants.TEST_SUCCESS)
             return HttpResponseRedirect(".")
         return super().response_change(request, form_obj)
 
