@@ -12,6 +12,9 @@ gunicorn = "*"
 psycopg2 = "*"
 mozilla-django-oidc = "*"
 black = "==21.6b0"
+coverage = "*"
+fhirclient = {git = "https://github.com/smart-on-fhir/client-py"}
+responses = "*"
 
 [requires]
 python_version = "3.8"
