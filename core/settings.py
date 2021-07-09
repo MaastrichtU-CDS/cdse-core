@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "authprovider",
     "log",
     "datasource",
@@ -75,6 +76,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "mozilla_django_oidc.middleware.SessionRefresh",
 ]
+
 
 ROOT_URLCONF = "core.urls"
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"

@@ -12,6 +12,8 @@ gunicorn = "*"
 psycopg2 = "*"
 mozilla-django-oidc = "*"
 black = "==21.6b0"
+djangorestframework = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
