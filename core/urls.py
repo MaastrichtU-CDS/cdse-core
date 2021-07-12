@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
+
 import mozilla_django_oidc
 from django.contrib import admin
 from django.urls import path, include
@@ -21,7 +23,16 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path("", TemplateView.as_view(template_name="index.html"), name="index_view"),
     path("api/", include("predictionmodel.urls")),
-    path("oidc/", include("mozilla_django_oidc.urls")),
-    path("admin/login/", mozilla_django_oidc.urls.OIDCAuthenticateClass.as_view()),
-    path("admin/", admin.site.urls),
 ]
+
+
+if os.environ.get("DJANGO_SETTINGS_MODULE", "") != "core.settings":
+    urlpatterns = urlpatterns + [
+        path("oidc/", include("mozilla_django_oidc.urls")),
+        path("admin/login/", mozilla_django_oidc.urls.OIDCAuthenticateClass.as_view()),
+        path("admin/", admin.site.urls),
+    ]
+else:
+    urlpatterns = urlpatterns + [
+        path("admin/", admin.site.urls),
+    ]

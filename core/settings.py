@@ -74,7 +74,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "mozilla_django_oidc.middleware.SessionRefresh",
 ]
 
 
@@ -82,27 +81,7 @@ ROOT_URLCONF = "core.urls"
 TEST_RUNNER = "xmlrunner.extra.djangotestrunner.XMLTestRunner"
 TEST_OUTPUT_FILE_NAME = "result.xml"
 
-OIDC_OP_LOGOUT_ENDPOINT = (
-    "http://localhost:8080/auth/realms/maastro/protocol/openid-connect/logout"
-)
-LOGOUT_REDIRECT_URL = "http://localhost:8000/"
-OIDC_OP_AUTHORIZATION_ENDPOINT = (
-    "http://localhost:8080/auth/realms/maastro/protocol/openid-connect/auth"
-)
-OIDC_OP_TOKEN_ENDPOINT = (
-    "http://localhost:8080/auth/realms/maastro/protocol/openid-connect/token"
-)
-OIDC_OP_USER_ENDPOINT = (
-    "http://localhost:8080/auth/realms/maastro/protocol/openid-connect/userinfo"
-)
-OIDC_OP_JWKS_ENDPOINT = (
-    "http://localhost:8080/auth/realms/maastro/protocol/openid-connect/certs"
-)
-OIDC_RP_CLIENT_ID = "cdse-core"
-OIDC_RP_CLIENT_SECRET = "37e5a99d-5eef-4ef6-958e-501df7510691"
-OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_RP_SCOPES = "openid email roles profile"
-OIDC_OP_LOGOUT_URL_METHOD = "authprovider.provider_logout"
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 
 TEMPLATES = [
     {
@@ -132,7 +111,7 @@ DATABASES = {
     }
 }
 
-AUTHENTICATION_BACKENDS = ("authprovider.models.CustomOIDCAuthenticationBackend",)
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
