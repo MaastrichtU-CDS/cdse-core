@@ -26,5 +26,5 @@ def ready(request):
 def result(request):
     body_unicode = request.body.decode("utf-8")
     body = json.loads(body_unicode)
-    print(body["has_static_asset"])
+    print(body["has_result_page"])
     return Response()
