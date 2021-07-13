@@ -8,24 +8,22 @@ class Client:
     PREFIX = "http://"
     HOST = "http://localhost:1312/"
     HEADERS = {"Authorization": "secret"}
+    PAYLOAD = {
+        "clinical_T": "cT1",
+        "clinical_N": "cN0",
+    }
 
     def post_model_input(self):
-        payload = {
-            "clinical_T": "cT1",
-            "clinical_N": "cN0",
-        }
-
         try:
             session = requests.session()
             retry = Retry(total=5, backoff_factor=0.2, status_forcelist=[500])
             session.mount(self.PREFIX, HTTPAdapter(max_retries=retry))
-            session.post(self.HOST, data=json.dumps(payload), headers=self.HEADERS)
+            session.post(self.HOST, data=json.dumps(self.PAYLOAD), headers=self.HEADERS)
         except ConnectionError as connection_error:
             print(connection_error)
 
-    def get_model_result(self):
+    def get_model_result_page(self):
         try:
-            resp = requests.get(self.HOST, headers=self.HEADERS)
-            print(resp)
+            requests.get(self.HOST, headers=self.HEADERS)
         except ConnectionError as connection_error:
             print(connection_error)
