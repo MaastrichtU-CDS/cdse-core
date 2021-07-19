@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+mypy = "*"
 
 [packages]
 django = "==3.2.*"
@@ -17,6 +18,9 @@ fhirclient = {git = "https://github.com/smart-on-fhir/client-py"}
 responses = "*"
 djangorestframework = "*"
 requests = "*"
+django-extensions = "*"
+pyparsing = "*"
+pydot = "*"
 
 [requires]
 python_version = "3.8"

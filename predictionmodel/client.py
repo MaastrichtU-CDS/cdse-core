@@ -9,8 +9,8 @@ class Client:
     HOST = "http://localhost:1312/"
     HEADERS = {"Authorization": "secret"}
     PAYLOAD = {
-        "clinical_T": "cT1",
-        "clinical_N": "cN0",
+        "Clinical_T": "cT1",
+        "Clinical_N": "cN0",
     }
 
     def post_model_input(self):

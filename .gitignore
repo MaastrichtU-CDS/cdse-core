@@ -9,7 +9,7 @@ dist/
 static/admin/
 # Compiled Java class files
 *.class
-
+*.png
 #testing
 htmlcov/
 .coverage

@@ -1,2 +1,2 @@
-from .views import *
+from .api import *
 from .client import *
