@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_422_UNPROCESSABLE_ENTITY
 
 
-class TestPredictionModelView(TestCase):
+class TestPredictionApi(TestCase):
     client = None
     TEST_INPUT_PAYLOAD = {
         "clinical_T": "cT1",
@@ -18,7 +18,7 @@ class TestPredictionModelView(TestCase):
         self.client = Client()
 
     @responses.activate
-    def test_ready_view(self):
+    def test_ready_api(self):
         responses.add(
             responses.POST,
             "http://localhost:1312/",
@@ -34,7 +34,7 @@ class TestPredictionModelView(TestCase):
         )
 
     @responses.activate
-    def test_result_view(self):
+    def test_result_api(self):
         response = self.client.post(
             reverse("post_result"),
             data=json.dumps(self.TEST_RESULT_PAYLOAD),
@@ -44,7 +44,7 @@ class TestPredictionModelView(TestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
 
     @responses.activate
-    def test_incomplete_result_view(self):
+    def test_incomplete_result_api(self):
         response = self.client.post(
             reverse("post_result"),
             data=json.dumps({"x": 1}),

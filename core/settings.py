@@ -38,11 +38,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "django_extensions",
     "authprovider",
     "log",
     "datasource",
     "predictionmodel",
 ]
+
+GRAPH_MODELS = {
+  'all_applications': True,
+  'group_models': True,
+}
 
 LOGGING = {
     "version": 1,
