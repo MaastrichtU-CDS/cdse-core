@@ -43,7 +43,7 @@ This will clean reformat your code conform PEP8 styleguide.
 #Running in production mode
 The most easy way to get started in production mode, is to run it in docker containers.
 First set the environment variables like the provided .env files.
-You will see there are some variables you cannot fill jet. These will become available after we run the script and 
+You will see there are some variables you cannot fill yet. These will become available after we run the script and 
 configured keycloak.
 
 The project provides a docker-compose file. To use it, install docker compose and run the command:
