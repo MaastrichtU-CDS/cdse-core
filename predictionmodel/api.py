@@ -5,13 +5,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from predictionmodel.client import Client
+from predictionmodel import tests
 
 
 @api_view(["GET"])
 def ready(request):
-    Client().post_model_input()
-    return Response(status=status.HTTP_200_OK)
+    # Currently return test payload, next story this will be user selected input.
+    return Response(tests.TEST_INPUT_PAYLOAD)
 
 
 @api_view(["POST"])
