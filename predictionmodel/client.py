@@ -10,5 +10,3 @@ class PredictionModelClient:
     def get_model_list():
         resp = requests.get(HOST)
         return resp.json()
-
-
