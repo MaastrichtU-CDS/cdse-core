@@ -1,6 +1,5 @@
-from django.urls import path, include
+from django.urls import path
 
+from predictionmodel.views import PrepareModelWizard
 
-urlpatterns = [
-    path("v1/", include("predictionmodel.api"), name="api_v1"),
-]
+urlpatterns = [path("start/", PrepareModelWizard.as_view(), name="prediction_start")]

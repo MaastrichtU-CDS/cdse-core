@@ -15,6 +15,10 @@ Keycloak. Of course this is not suitable for production. This mode can be used f
 In order to run prediction models and connect data-sources you need Docker running and have access to a active 
 FHIR-endpoint.
 
+Please keep in mind that the docker containers need to know the ip of the host and be able to reach them.
+To make it accessible, specify you local network ip + port in environment variables and add the suffix 
+"0.0.0.0:8000" to the runserver command. 
+
 ##Compatibility
 CDSE-core is compatible and tested with the following versions:
 - postgresSQL 12.3
@@ -43,10 +47,10 @@ This will clean reformat your code conform PEP8 styleguide.
 #Running in production mode
 The most easy way to get started in production mode, is to run it in docker containers.
 First set the environment variables like the provided .env files.
-You will see there are some variables you cannot fill yet. These will become available after we run the script and 
-configured keycloak.
+You will see there are some variables you cannot fill yet. 
+These will become available after you run the script and configured keycloak.
 
-The project provides a docker-compose file. To use it, install docker compose and run the command:
+The project provides a docker-compose file. To use it, install docker-compose and run the command:
 - docker-compose up
 
 This will start:
@@ -57,20 +61,19 @@ This will start:
 It will run migrations and create the needed groups within the django application.
 The only thing left is configuration of keycloak. This you will find in the section below.
 After you configured keycloak please fill in the right variables and restart the CDSE-core container.
-Now the application is running in production mode and will use the external services.
+Now the application is running in production mode and will use the external services accordingly.
 
 
 #Configure Keycloak
 
-For detailed instructions how to set up the system please follow. [intro to keycloak](https://www.youtube.
-com/watch?
-v=duawSV69LDI)
+For detailed instructions how to set up the system please follow. 
+[intro to keycloak](https://www.youtube.com/watch?v=duawSV69LDI)
 
 - Create a new realm
 - Add a new client
 - Set jwt key to rs256
 - Set on confidential
-- set roles to be incuded in token
+- set roles to be included in token
 - Create user with complete details
 - Create roles
 - Add right keys to env variable
