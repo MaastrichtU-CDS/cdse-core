@@ -21,6 +21,9 @@ requests = "*"
 django-extensions = "*"
 pyparsing = "*"
 pydot = "*"
+docker = "*"
+rdflib = "*"
+sparqlwrapper = "*"
 
 [requires]
 python_version = "3.8"

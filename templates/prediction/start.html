@@ -11,10 +11,10 @@
 
 <p><strong>Select prediction model</strong></p>
 
- <select name="select_model_id" id="select_model_id">
+ <select name="selected_model_uri" id="selected_model_uri">
 <option value="">---------</option>
 {% for model in prediction_models %}
-<option value="{{ model.id }}">{{ model.name }}</option>
+<option value="{{ model.uri }}">{{ model.label }}</option>
 {% endfor %}
  </select>
 

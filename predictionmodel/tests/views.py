@@ -63,7 +63,7 @@ class TestPredictionModelStartView(TestCase):
 
         resp = self.client.post(
             reverse("prediction_start"),
-            data={"select_model_id": ""},
+            data={"select_model_uri": "", "action": "start_prediction"},
             follow=True,
         )
 
