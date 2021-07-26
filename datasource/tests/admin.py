@@ -33,7 +33,14 @@ class TestFhirEndpointAdminFunction(TestCase):
         self.request = HttpRequest()
         self.request.POST.appendlist("_test", "test")
 
+    @responses.activate
     def test_endpoint_no_response(self, mock_add_message):
+        responses.add(
+            responses.GET,
+            "http://localhost:8080/fhir/metadata",
+            status=500,
+        )
+
         self.assertRaises(
             Exception,
             self.fhirEndpointAdmin.response_change(self.request, self.form_obj),

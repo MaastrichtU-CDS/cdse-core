@@ -8,18 +8,6 @@ from utils.RDFQueryBuilder import query_form_string
 from predictionmodel.query.execution_data import query_model_execution_data
 
 
-def get_model_execution_data(selected_model_uri):
-    query_string = query_model_execution_data(selected_model_uri)
-    execution_data = query_form_string(query_string)
-
-    docker_execution_data = [
-        item
-        for item in execution_data
-        if "docker_execution" in str(item["exec_type"]["value"])
-    ]
-    return docker_execution_data[0]
-
-
 def get_all_models():
     query_string = query_all_models()
     all_model_data = query_form_string(query_string)
@@ -31,6 +19,18 @@ def get_all_models():
         }
         result.append(new_item)
     return result
+
+
+def get_model_execution_data(selected_model_uri):
+    query_string = query_model_execution_data(selected_model_uri)
+    execution_data = query_form_string(query_string)
+
+    docker_execution_data = [
+        item
+        for item in execution_data
+        if "docker_execution" in str(item["exec_type"]["value"])
+    ]
+    return docker_execution_data[0]
 
 
 class PredictionModelSession(models.Model):
