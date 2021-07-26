@@ -13,7 +13,6 @@ static/admin/
 #testing
 htmlcov/
 .coverage
-Pipfile.lock
 # Compiled Python bytecode
 *.py[cod]
 
