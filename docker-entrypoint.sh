@@ -1,18 +1,14 @@
 #!/bin/sh
 
-if [ "$SQL_DATABASE_DJANGO" = "postgres" ]
+if [ "$SQL_DATABASE_DJANGO" = "djangodb" ]
 then
     echo "Waiting for postgres..."
-
-    while ! nc -z $SQL_HOST $SQL_PORT; do
-      sleep 0.1
-    done
-
+      sleep 20
     echo "PostgreSQL started"
 fi
 
-python manage.py migrate
-python manage.py create_group
+python manage.py migrate --settings=core.production
+python manage.py create_group --settings=core.production
 python manage.py collectstatic --no-input --clear
 
 gunicorn core.wsgi -b 0.0.0.0:8000
