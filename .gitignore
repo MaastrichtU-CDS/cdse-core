@@ -15,7 +15,7 @@ htmlcov/
 .coverage
 # Compiled Python bytecode
 *.py[cod]
-
+/static
 # Log files
 *.log
 result.xml

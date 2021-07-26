@@ -20,8 +20,9 @@ services:
       - 80:80
     depends_on:
       - web
+      - db
   keycloak:
-    image: quay.io/keycloak/keycloak:latest
+    image: jboss/keycloak:13.0.0
     env_file:
       - ./.env.keycloak.prod
     ports:
