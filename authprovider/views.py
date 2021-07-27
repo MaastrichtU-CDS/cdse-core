@@ -2,5 +2,5 @@ from mozilla_django_oidc.views import OIDCLogoutView
 
 
 class LogoutView(OIDCLogoutView):
-    def get(self, request):
+    def post(self, request):
         return self.post(request)

@@ -37,5 +37,5 @@ if os.environ.get("DJANGO_SETTINGS_MODULE", "") != "core.settings":
 else:
     urlpatterns = urlpatterns + [
         path("admin/", admin.site.urls),
-        path("logout", views.LogoutView.as_view(), name="logout"),
+        path("logout", views.LogoutView.as_view(), name="oidc_logout"),
     ]
