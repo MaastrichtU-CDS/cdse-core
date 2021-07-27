@@ -1,3 +1,6 @@
-from django.shortcuts import render
+from mozilla_django_oidc.views import OIDCLogoutView
 
-# Create your views here.
+
+class LogoutView(OIDCLogoutView):
+    def post(self, request):
+        return self.post(request)
