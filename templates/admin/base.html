@@ -46,9 +46,8 @@
                         <a href="{{ docsroot }}">{% translate 'Documentation' %}</a> /
                     {% endif %}
                 {% endif %}
-            <form method="post" action="{% url 'oidc_logout' %}" style="display: inline-block;">{% csrf_token %}
-                <button type="submit">{% translate 'Log out' %}</button>
-            </form>
+             <a href="{% url 'logout' %}">{% translate 'Log out' %}</a>
+            {% endif %}
         {% endblock %}
         </div>
         {% endif %}
