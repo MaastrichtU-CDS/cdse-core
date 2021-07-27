@@ -20,6 +20,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
 
+from authprovider import views
+
 urlpatterns = [
     path("", TemplateView.as_view(template_name="index.html"), name="index_view"),
     path("api/v1/", include("predictionmodel.api"), name="api_route"),
@@ -36,4 +38,5 @@ if os.environ.get("DJANGO_SETTINGS_MODULE", "") != "core.settings":
 else:
     urlpatterns = urlpatterns + [
         path("admin/", admin.site.urls),
+        path("logout", views.LogoutView.as_view(), name="oidc_logout"),
     ]

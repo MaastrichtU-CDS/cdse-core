@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   web:
-    image: lery/cdse-core:latest
+    build: .
     entrypoint: ./docker-entrypoint.sh
     expose:
       - 8000
@@ -15,7 +15,7 @@ services:
   nginx:
     build: ./nginx
     volumes:
-      - static_volume:/app/asset
+      - static_volume:/app/static
     ports:
       - 80:80
     depends_on:

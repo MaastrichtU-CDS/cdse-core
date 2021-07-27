@@ -17,10 +17,9 @@ static/rest_framework
 #testing
 htmlcov/
 .coverage
-Pipfile.lock
 # Compiled Python bytecode
 *.py[cod]
-
+/static
 # Log files
 *.log
 result.xml
