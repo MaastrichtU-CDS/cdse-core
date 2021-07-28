@@ -19,7 +19,7 @@ from predictionmodel.models import (
 
 
 @method_decorator(login_required, name="dispatch")
-class PrepareModelWizard(TemplateView):
+class StartModelWizard(TemplateView):
     template_name = "prediction/start.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -30,6 +30,29 @@ class PrepareModelWizard(TemplateView):
         except Exception as ex:
             messages.add_message(
                 self.request, messages.ERROR, constants.ERROR_GET_MODEL_LIST_FAILED
+            )
+
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class PrepareModelWizard(TemplateView):
+    template_name = "prediction/prepare.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        patient_id = self.request.GET.get("patient_id")
+        selected_model_uri = self.request.GET.get("selected_model_uri")
+
+        if patient_id != "" or selected_model_uri != "":
+            context["patient_id"] = patient_id
+            context["selected_model_uri"] = selected_model_uri
+        else:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_REQUIRED_PARAMETERS_NOT_FOUND,
             )
         return context
 
@@ -62,4 +85,4 @@ class PrepareModelWizard(TemplateView):
             messages.add_message(
                 request, messages.WARNING, constants.NO_PREDICTION_MODEL_SELECTED
             )
-        return HttpResponseRedirect(".")
+        return HttpResponseRedirect("/prediction/start")

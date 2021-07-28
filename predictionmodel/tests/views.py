@@ -51,6 +51,16 @@ class TestPredictionModelStartView(TestCase):
         self.assertContains(resp, "Rectal cancer BN model.", status_code=200)
         self.assertTemplateUsed(resp, "prediction/start.html")
 
+
+class TestPredictionModelPrepareView(TestCase):
+    def setUp(self):
+        User.objects.create_superuser("admin", "admin@example.com", "Password123")
+        self.client = Client()
+        self.client.login(username="admin", password="Password123")
+
+    def tearDown(self):
+        self.client.logout()
+
     @patch(
         "predictionmodel.models.query_form_string",
         return_value=[
@@ -65,7 +75,7 @@ class TestPredictionModelStartView(TestCase):
     )
     def test_post_with_no_selection(self, mocked_query):
         resp = self.client.post(
-            reverse("prediction_start"),
+            reverse("prediction_prepare"),
             data={"selected_model_uri": "", "action": "start_prediction"},
             follow=True,
         )
