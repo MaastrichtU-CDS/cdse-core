@@ -25,7 +25,7 @@ SECRET_KEY = "django-secure-)x!wszkl9dw$3)o!6dfz#4uz(_^k7(x#_&rs*27brtf71v%3k+"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.3.42"]
 LOGIN_REDIRECT_URL = "/admin"
 
 # Application definition
@@ -153,7 +153,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, "asset")
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 

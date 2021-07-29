@@ -24,7 +24,8 @@ from authprovider import views
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="index.html"), name="index_view"),
-    path("api/", include("predictionmodel.urls")),
+    path("api/v1/", include("predictionmodel.api"), name="api_route"),
+    path("prediction/", include("predictionmodel.urls")),
 ]
 
 

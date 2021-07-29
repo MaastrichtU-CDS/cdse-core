@@ -27,6 +27,6 @@ def post_model_result(request):
 
 
 urlpatterns = [
-    path("ready", get_model_input, name="get_ready"),
+    path("ready", get_model_input, name="get_model_input"),
     path("result", post_model_result, name="post_result"),
 ]

@@ -15,7 +15,7 @@ services:
   nginx:
     build: ./nginx
     volumes:
-      - static_volume:/app/static
+      - static_volume:/app/asset
     ports:
       - 80:80
     depends_on:

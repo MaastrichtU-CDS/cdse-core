@@ -20,7 +20,7 @@ class TestPredictionApi(TestCase):
 
     @responses.activate
     def test_ready_api(self):
-        client_response = self.client.get(reverse("get_ready"))
+        client_response = self.client.get(reverse("get_model_input"))
 
         self.assertEqual(client_response.status_code, HTTP_200_OK)
         self.assertEqual(client_response.json(), TEST_INPUT_PAYLOAD)
