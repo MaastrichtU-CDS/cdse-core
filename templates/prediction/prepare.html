@@ -8,8 +8,8 @@
 <form action="{% url 'prediction_prepare' %}" method="post">
 
 {% csrf_token %}
-<input type="hidden" id="patient_id" name="patient_id" value="{{patient_id}}">
-<input type="hidden" id="selected_model_uri" name="selected_model_uri" value="{{selected_model_uri}}">
+<input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
+<input type="hidden" id="selected_model_uri" name="selected_model_uri" value="{{selected_model_uri|default_if_none:''}}">
 <p><strong>Selected patient ID: {{patient_id}}</strong></p>
 
 

@@ -62,27 +62,34 @@ class PrepareModelWizard(TemplateView):
         selected_model_uri = request.POST["selected_model_uri"]
         if post_action == "start_prediction" and selected_model_uri != "":
 
-            docker_execution_data = get_model_execution_data(selected_model_uri)
-            container_props = prepare_container_properties(
-                docker_execution_data.get("image_name").get("value"),
-                docker_execution_data.get("image_id").get("value"),
-            )
-
-            PredictionModelSession.objects.create(
-                secret_token=container_props.get("secret_token"),
-                network_port=container_props.get("port"),
-                user=request.user,
-            )
-
             try:
-                run_model_container(*container_props.values())
-            except Exception as ex:
-                messages.add_message(
-                    request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+                docker_execution_data = get_model_execution_data(selected_model_uri)
+                container_props = prepare_container_properties(
+                    docker_execution_data.get("image_name").get("value"),
+                    docker_execution_data.get("image_id").get("value"),
                 )
 
+                PredictionModelSession.objects.create(
+                    secret_token=container_props.get("secret_token"),
+                    network_port=container_props.get("port"),
+                    user=request.user,
+                )
+
+                try:
+                    run_model_container(*container_props.values())
+                except Exception as ex:
+                    messages.add_message(
+                        request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+                    )
+
+            except Exception as ex:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED,
+                )
         else:
             messages.add_message(
                 request, messages.WARNING, constants.NO_PREDICTION_MODEL_SELECTED
             )
-        return HttpResponseRedirect("/prediction/start")
+        return HttpResponseRedirect(".")
