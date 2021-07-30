@@ -66,7 +66,9 @@ class PrepareModelWizard(TemplateView):
 
             fhir_endpoint_url = FhirEndpoint.get_full_url_by_id(fhir_endpoint_id)
 
-            patient_observations = FhirClient(fhir_endpoint_url).get_patient_observations(patient_id)
+            patient_observations = FhirClient(
+                fhir_endpoint_url
+            ).get_patient_observations(patient_id)
             # todo expand use of observations in future stories
             print(patient_observations)
 
