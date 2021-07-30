@@ -9,7 +9,7 @@ HOST = os.environ.get(
 )
 
 
-def query_form_string(query_string):
+def query_from_string(query_string):
     try:
         sparql = SPARQLWrapper(HOST)
         sparql.setQuery(query_string)

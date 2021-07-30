@@ -2,7 +2,7 @@ from typing import List
 
 from fhirclient import client
 from fhirclient.models import observation
-
+from fhirclient.models import patient
 from fhir.exceptions import FhirEndpointFailedException
 
 
@@ -23,6 +23,16 @@ class Client:
             ).perform_resources(
                 self.smart.server
             )
+
             return observation_list
+        except Exception:
+            raise FhirEndpointFailedException()
+
+    def get_patient_name_and_birthdate(self, patient_id):
+        try:
+            found_patient = patient.Patient.read(patient_id, self.smart.server)
+            name = self.smart.human_name(found_patient.name[0])
+            birthdate = found_patient.birthDate.isostring
+            return {"name": name, "birthdate": birthdate}
         except Exception:
             raise FhirEndpointFailedException()

@@ -20,7 +20,7 @@ from predictionmodel.exceptions import (
 )
 from predictionmodel.models import PredictionModelSession
 from sparql.exceptions import SparqlQueryFailedException
-from sparql.query import get_all_models, get_model_execution_data
+from sparql.query import get_all_models, get_model_execution_data, get_model_input_data
 
 
 @method_decorator(login_required, name="dispatch")
@@ -65,11 +65,17 @@ class PrepareModelWizard(TemplateView):
                     raise InvalidInputException("fhir_endpoint_id")
 
             fhir_endpoint_url = FhirEndpoint.get_full_url_by_id(fhir_endpoint_id)
+            context["patient_information"] = FhirClient(
+                fhir_endpoint_url
+            ).get_patient_name_and_birthdate(patient_id)
 
             patient_observations = FhirClient(
                 fhir_endpoint_url
             ).get_patient_observations(patient_id)
-            # todo expand use of observations in future stories
+
+            model_input_list = get_model_input_data(selected_model_uri)
+            context["model_input_list"] = model_input_list
+
             print(patient_observations)
 
         except InvalidInputException as ex:
@@ -143,3 +149,15 @@ class PrepareModelWizard(TemplateView):
                 )
 
         return HttpResponseRedirect("/admin")
+
+
+# def get_matching_model_input(observations_list, input_parameters):
+#     results: List[Dict[str]] = []
+#
+#
+#     for item in observations_list:
+#         if item.valueCodeableConcept is not None:
+#             # check if parent ncit code is present in this observation
+#             found_matching_parents = if d['ncit_parent'] in item.code.coding[0].code
+#
+#     return results

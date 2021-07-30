@@ -5,7 +5,8 @@ PREFIX fml: <https://fairmodels.org/ontology.owl#>
 SELECT DISTINCT ?ncit_parent ?ncit_child ?model_input_parameter ?parent_input_parameter
 WHERE {
     BIND (<%s> AS ?model).
-	?model fml:has_input_parameter ?input_parameters.
+    ?model fml:contains_algorithm ?algo.
+	?algo fml:has_input_parameter ?input_parameters.
   	?input_parameters fml:has_translation ?translated_input.
   	?translated_input fml:target_value ?model_input_parameter.
   	?translated_input fml:source_object ?source_obj.
