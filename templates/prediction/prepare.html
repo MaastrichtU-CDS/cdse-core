@@ -3,69 +3,22 @@
 {% block content %}
 
 <div class="wizard-main">
-    <h1>Prediction Model Prepare</h1>
+<h1>Prediction Model Prepare</h1>
 
-    <form action="{% url 'prediction_prepare' %}" method="post">
+<form action="{% url 'prediction_prepare' %}" method="post">
 
-        {% csrf_token %}
-        <input type="hidden" id="fhir_endpoint" name="fhir_endpoint" value="{{fhir_endpoint|default_if_none:''}}">
-        <input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
-        <input type="hidden" id="selected_model_uri" name="selected_model_uri"
-               value="{{selected_model_uri|default_if_none:''}}">
+{% csrf_token %}
+<input type="hidden" id="fhir_endpoint" name="fhir_endpoint" value="{{fhir_endpoint|default_if_none:''}}">
+<input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
+<input type="hidden" id="selected_model_uri" name="selected_model_uri" value="{{selected_model_uri|default_if_none:''}}">
 
-        <div class="selected-patient-box">
-            <div class="padding">
-                <h2>Selected patient</h2>
-                <p>Name: {{patient_information.name}}</p>
-                <p>Birthdate: {{patient_information.birthdate}}</p>
-            </div>
-        </div>
-        <table class="parameter-table">
-            <thead>
-            <tr>
-                <th>Model input</th>
-                <th>Found values</th>
-                <th>Manual override</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for input_item in model_input_list %}
-            <tr>
-                <td>{{input_item.ncit_parent}}</td>
-                <td>
-                    {% for child in input_item.child_values %}
-                    {{ child.ncit_child }}
-                    {% endfor %}
-                </td>
-                <td>
-                    <select name="override-{{input_item.ncit_parent}}" id="override-{{input_item.ncit_parent}}">
-                        <option value="">---------</option>
-                        {% for child in input_item.child_values %}
-                        <option value="{{ child.ncit_child }}">{{ child.ncit_child }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td id="reset-{{input_item.ncit_parent}}" class="text-underline cursor-pointer">Reset</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+<p><strong>Selected fhir ID: {{fhir_endpoint}}</strong></p>
+<p><strong>Selected patient ID: {{patient_id}}</strong></p>
+<p><strong>Selected model URI: {{selected_model_uri}}</strong></p>
 
-        <button type="submit" name='action' value="start_prediction" class="next-button">Start</button>
-    </form>
-    <br>
-    <a href="/prediction/start" class="next-button">Back</a>
-</div>
-
-<script type="text/javascript">
-{% for input_item in model_input_list %}
-document.getElementById('reset-{{input_item.ncit_parent}}').onclick=function(){
-    var {{input_item.ncit_parent}} = document.querySelectorAll('#override-{{input_item.ncit_parent}} option');
-for (var i = 0, l = {{input_item.ncit_parent}}.length; i < l; i++) {
-    {{input_item.ncit_parent}}[i].selected = {{input_item.ncit_parent}}[i].defaultSelected;
-}}
-{% endfor %}
-
-</script>
+ <button type="submit" name='action' value="start_prediction" class="next-button">Start</button>
+ </form>
+<br>
+ <a href="/prediction/start" class="next-button">Back</a>
+ </div>
 {% endblock content %}

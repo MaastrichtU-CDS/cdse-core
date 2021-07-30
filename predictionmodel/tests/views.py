@@ -20,7 +20,7 @@ class TestPredictionModelStartView(TestCase):
         self.client.logout()
 
     @patch(
-        "sparql.query.query_from_string",
+        "sparql.query.query_form_string",
         autospec=True,
         side_effect=SparqlQueryFailedException(),
     )
@@ -34,7 +34,7 @@ class TestPredictionModelStartView(TestCase):
         self.assertEqual(str(messages[0]), constants.ERROR_GET_MODEL_LIST_FAILED)
 
     @patch(
-        "sparql.query.query_from_string",
+        "sparql.query.query_form_string",
         return_value=[
             {
                 "model": {

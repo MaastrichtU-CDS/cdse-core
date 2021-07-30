@@ -8,14 +8,7 @@ select {
 }
 
 .wizard-main input {
-    width: 100%;
-}
-.text-underline {
-    text-decoration: underline;
-}
-
-.cursor-pointer {
-  cursor:pointer;
+width: 100%;
 }
 
 .wizard-main{
@@ -38,63 +31,4 @@ select {
 }
 a.next-button {
   color: white;
-}
-
-.parameter-table {
-    border-collapse: collapse;
-    margin: 25px 0;
-    font-size: 0.9em;
-    font-family: sans-serif;
-    min-width: 400px;
-    width: 100%;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-}
-
-.parameter-table thead tr {
-    background-color: #009879;
-    color: #ffffff;
-    text-align: left;
-}
-
-.parameter-table th,
-.parameter-table td {
-    padding: 12px 15px;
-}
-
-.parameter-table tbody tr {
-    border-bottom: 1px solid #dddddd;
-}
-
-.parameter-table tbody tr:nth-of-type(even) {
-    background-color: #f3f3f3;
-}
-
-.parameter-table tbody tr:last-of-type {
-    border-bottom: 2px solid #417690;
-}
-
-.parameter-table tbody tr.active-row {
-    font-weight: bold;
-    color: #417690;
-}
-
-.selected-patient-box {
-    background-color: #f8f8f8;
-    width: 100%;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-    border-bottom: 2px solid #417690;
-}
-
-.selected-patient-box h2 {
-    margin-top:5px;
-}
-
-.selected-patient-box p {
-    font-weight: 400;
-    margin: 0;
-    font-size: 1em;
-    font-family: sans-serif;
-}
-.selected-patient-box .padding{
-padding: 10px;
 }
