@@ -5,17 +5,22 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
-
-from dockerEngine.containerService import (
+from datasource.models import FhirEndpoint
+from dockerengine.container import (
     prepare_container_properties,
     run_model_container,
 )
+from dockerengine.exceptions import DockerEngineFailedException
+from fhir.exceptions import FhirEndpointFailedException
+from fhir.client import Client as FhirClient
 from predictionmodel import constants
-from predictionmodel.models import (
-    PredictionModelSession,
-    get_model_execution_data,
-    get_all_models,
+from predictionmodel.exceptions import (
+    InvalidInputException,
+    NoPredictionModelSelectedException,
 )
+from predictionmodel.models import PredictionModelSession
+from sparql.exceptions import SparqlQueryFailedException
+from sparql.query import get_all_models, get_model_execution_data
 
 
 @method_decorator(login_required, name="dispatch")
@@ -24,10 +29,11 @@ class StartModelWizard(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        context["fhir_endpoints"] = FhirEndpoint.objects.all()
 
         try:
             context["prediction_models"] = get_all_models()
-        except Exception as ex:
+        except SparqlQueryFailedException:
             messages.add_message(
                 self.request, messages.ERROR, constants.ERROR_GET_MODEL_LIST_FAILED
             )
@@ -42,27 +48,60 @@ class PrepareModelWizard(TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
+        fhir_endpoint_id = self.request.GET.get("fhir_endpoint_id")
         patient_id = self.request.GET.get("patient_id")
         selected_model_uri = self.request.GET.get("selected_model_uri")
 
-        if patient_id != "" or selected_model_uri != "":
-            context["patient_id"] = patient_id
-            context["selected_model_uri"] = selected_model_uri
-        else:
+        try:
+            if patient_id == "" or patient_id is None:
+                raise InvalidInputException("patient_id")
+
+            if selected_model_uri == "" or selected_model_uri is None:
+                raise InvalidInputException("selected_model_uri")
+
+            if fhir_endpoint_id == "" or fhir_endpoint_id is None:
+                fhir_endpoint_id = FhirEndpoint.get_default_id_or_none()
+                if fhir_endpoint_id is None:
+                    raise InvalidInputException("fhir_endpoint_id")
+
+            fhir_endpoint_url = FhirEndpoint.get_full_url_by_id(fhir_endpoint_id)
+
+            patient_observations = FhirClient(fhir_endpoint_url).get_patient_observations(patient_id)
+            # todo expand use of observations in future stories
+            print(patient_observations)
+
+        except InvalidInputException as ex:
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                constants.ERROR_REQUIRED_PARAMETERS_NOT_FOUND,
+                constants.ERROR_REQUIRED_INPUT_NOT_FOUND + ex.input_parameter,
             )
+        except FhirEndpointFailedException:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_GET_DATA_FROM_FHIR_FAILED,
+            )
+        except Exception:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_UNKNOWN,
+            )
+
+        context["selected_model_uri"] = selected_model_uri
         return context
 
     @staticmethod
     def post(request, *args, **kwargs):
         post_action = request.POST["action"]
         selected_model_uri = request.POST["selected_model_uri"]
-        if post_action == "start_prediction" and selected_model_uri != "":
 
+        if post_action == "start_prediction":
             try:
+                if selected_model_uri == "" or selected_model_uri is None:
+                    raise NoPredictionModelSelectedException()
+
                 docker_execution_data = get_model_execution_data(selected_model_uri)
                 container_props = prepare_container_properties(
                     docker_execution_data.get("image_name").get("value"),
@@ -75,21 +114,30 @@ class PrepareModelWizard(TemplateView):
                     user=request.user,
                 )
 
-                try:
-                    run_model_container(*container_props.values())
-                except Exception as ex:
-                    messages.add_message(
-                        request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
-                    )
+                run_model_container(*container_props.values())
 
-            except Exception as ex:
+            except DockerEngineFailedException:
+                messages.add_message(
+                    request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+                )
+
+            except SparqlQueryFailedException:
                 messages.add_message(
                     request,
                     messages.ERROR,
                     constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED,
                 )
-        else:
-            messages.add_message(
-                request, messages.WARNING, constants.NO_PREDICTION_MODEL_SELECTED
-            )
-        return HttpResponseRedirect(".")
+
+            except NoPredictionModelSelectedException:
+                messages.add_message(
+                    request, messages.ERROR, constants.NO_PREDICTION_MODEL_SELECTED
+                )
+
+            except Exception:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    constants.ERROR_UNKNOWN,
+                )
+
+        return HttpResponseRedirect("/admin")

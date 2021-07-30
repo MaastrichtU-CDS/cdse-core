@@ -31,3 +31,22 @@ class FhirEndpoint(models.Model):
         if major_version not in FhirEndpoint.supported_major_versions:
             raise FHIRIncompatibleVersionException(major_version)
         return True
+
+    @staticmethod
+    def get_full_url_by_id(fhir_endpoint_id):
+        fhir_endpoint_url = (
+            FhirEndpoint.objects.values_list("full_url")
+            .filter(id=fhir_endpoint_id)
+            .first()
+        )
+        return fhir_endpoint_url[0]
+
+    @staticmethod
+    def get_default_id_or_none():
+        if FhirEndpoint.objects.filter(is_default=True).exists():
+            default_endpoint_id = (
+                FhirEndpoint.objects.values_list("id").filter(is_default=True).first()
+            )
+            return default_endpoint_id[0]
+        else:
+            return None

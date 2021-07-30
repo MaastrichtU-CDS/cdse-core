@@ -3,23 +3,31 @@
 {% block content %}
 
 <div class="wizard-main">
-<h1>Prediction Model Start</h1>
+    <h1>Prediction Model Start</h1>
 
-<form action="{% url 'prediction_prepare' %}" method="get">
+    <form action="{% url 'prediction_prepare' %}" method="get">
 
-  <label for="patient_id">Patient ID:</label>
-  <input type="text" id="patient_id" name="patient_id" required="required">
-   <br><br>
+        <label for="fhir_endpoint_id">Select a fhir endpoint:</label>
+        <select name="fhir_endpoint_id" id="fhir_endpoint_id" required="required">
+            <option value="">---------</option>
+            {% for endpoint in fhir_endpoints %}
+            <option value="{{ endpoint.id }}">{{ endpoint.name }}</option>
+            {% endfor %}
+        </select>
 
- <label for="selected_model_uri">Select a model:</label>
- <select name="selected_model_uri" id="selected_model_uri" required="required">
-   <option value="">---------</option>
-  {% for model in prediction_models %}
-   <option value="{{ model.uri }}">{{ model.label }}</option>
-  {% endfor %}
- </select>
+        <label for="patient_id">Patient ID:</label>
+        <input type="text" id="patient_id" name="patient_id" required="required">
+        <br><br>
 
- <button type="submit" name='action' value="next_screen" class="next-button">Next</button>
- </form>
- </div>
+        <label for="selected_model_uri">Select a model:</label>
+        <select name="selected_model_uri" id="selected_model_uri" required="required">
+            <option value="">---------</option>
+            {% for model in prediction_models %}
+            <option value="{{ model.uri }}">{{ model.label }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" name='action' value="next_screen" class="next-button">Next</button>
+    </form>
+</div>
 {% endblock content %}
