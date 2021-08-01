@@ -118,7 +118,6 @@ class TestPredictionModelPrepareView(TestCase):
             str(messages[0]), constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED
         )
 
-    @tag("current")
     def test_matching_observation_and_input(self):
         input_params = [
             {
