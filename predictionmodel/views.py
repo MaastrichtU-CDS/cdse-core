@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -74,9 +74,9 @@ class PrepareModelWizard(TemplateView):
             ).get_patient_observations(patient_id)
 
             model_input_list = get_model_input_data(selected_model_uri)
-            context["model_input_list"] = model_input_list
-
-            print(patient_observations)
+            context["model_input_list"] = get_matching_model_input(
+                model_input_list, patient_observations
+            )
 
         except InvalidInputException as ex:
             messages.add_message(
@@ -151,13 +151,25 @@ class PrepareModelWizard(TemplateView):
         return HttpResponseRedirect("/admin")
 
 
-# def get_matching_model_input(observations_list, input_parameters):
-#     results: List[Dict[str]] = []
-#
-#
-#     for item in observations_list:
-#         if item.valueCodeableConcept is not None:
-#             # check if parent ncit code is present in this observation
-#             found_matching_parents = if d['ncit_parent'] in item.code.coding[0].code
-#
-#     return results
+def get_matching_model_input(input_parameters, observations_list):
+    for input_item in input_parameters:
+        for observation_item in observations_list:
+            if (
+                observation_item.valueCodeableConcept is not None
+                and observation_item.code is not None
+            ):
+                if (
+                    observation_item.code.coding[0].system
+                    == input_item["input_type_parent"]
+                    and observation_item.code.coding[0].code
+                    == input_item["code_parent"]
+                ):
+                    for child_parameter in input_item["child_values"]:
+                        if (
+                            child_parameter["input_type_child"]
+                            == observation_item.valueCodeableConcept.coding[0].system
+                            and child_parameter["code_child"]
+                            == observation_item.valueCodeableConcept.coding[0].code
+                        ):
+                            input_item["matching_child_input"] = child_parameter
+    return input_parameters

@@ -32,21 +32,21 @@
             <tbody>
             {% for input_item in model_input_list %}
             <tr>
-                <td>{{input_item.ncit_parent}}</td>
+                <td>{{input_item.code_parent}}</td>
                 <td>
-                    {% for child in input_item.child_values %}
-                    {{ child.ncit_child }}
-                    {% endfor %}
+                    {% if input_item.matching_child_input is not None %}
+                    {{ input_item.matching_child_input.code_child }}
+                    {% endif %}
                 </td>
                 <td>
-                    <select name="override-{{input_item.ncit_parent}}" id="override-{{input_item.ncit_parent}}">
+                    <select name="override-{{input_item.code_parent}}" id="override-{{input_item.code_parent}}">
                         <option value="">---------</option>
                         {% for child in input_item.child_values %}
-                        <option value="{{ child.ncit_child }}">{{ child.ncit_child }}</option>
+                        <option value="{{ child.code_child }}">{{ child.code_child }}</option>
                         {% endfor %}
                     </select>
                 </td>
-                <td id="reset-{{input_item.ncit_parent}}" class="text-underline cursor-pointer">Reset</td>
+                <td id="reset-{{input_item.code_parent}}" class="text-underline cursor-pointer">Reset</td>
             </tr>
             {% endfor %}
             </tbody>
@@ -60,10 +60,10 @@
 
 <script type="text/javascript">
 {% for input_item in model_input_list %}
-document.getElementById('reset-{{input_item.ncit_parent}}').onclick=function(){
-    var {{input_item.ncit_parent}} = document.querySelectorAll('#override-{{input_item.ncit_parent}} option');
-for (var i = 0, l = {{input_item.ncit_parent}}.length; i < l; i++) {
-    {{input_item.ncit_parent}}[i].selected = {{input_item.ncit_parent}}[i].defaultSelected;
+document.getElementById('reset-{{input_item.code_parent}}').onclick=function(){
+    var {{input_item.code_parent}} = document.querySelectorAll('#override-{{input_item.code_parent}} option');
+for (var i = 0, l = {{input_item.code_parent}}.length; i < l; i++) {
+    {{input_item.code_parent}}[i].selected = {{input_item.code_parent}}[i].defaultSelected;
 }}
 {% endfor %}
 

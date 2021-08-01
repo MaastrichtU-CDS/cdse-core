@@ -42,23 +42,25 @@ def get_unique_parent_list(input_data):
     for item in input_data:
         parent_list.append(
             {
-                "ncit_parent": item.get("ncit_parent").get("value"),
+                "code_parent": item.get("code_parent").get("value"),
+                "input_type_parent": item.get("input_type_parent").get("value"),
                 "parent_input_parameter": item.get("parent_input_parameter").get(
                     "value"
                 ),
             }
         )
-    return list({item["ncit_parent"]: item for item in parent_list}.values())
+    return list({item["code_parent"]: item for item in parent_list}.values())
 
 
 def add_child_input_to_parent(input_data, parent_input):
     for parent in parent_input:
         parent["child_values"] = []
         for item in input_data:
-            if item.get("ncit_parent").get("value") in parent["ncit_parent"]:
+            if item.get("code_parent").get("value") in parent["code_parent"]:
                 parent["child_values"].append(
                     {
-                        "ncit_child": item.get("ncit_child").get("value"),
+                        "code_child": item.get("code_child").get("value"),
+                        "input_type_child": item.get("input_type_child").get("value"),
                         "model_input_parameter": item.get("model_input_parameter").get(
                             "value"
                         ),
