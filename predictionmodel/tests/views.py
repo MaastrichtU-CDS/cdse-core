@@ -4,9 +4,11 @@ from django.contrib.auth.models import User
 from django.test import TestCase, Client, tag
 
 from django.urls import reverse
+from fhirclient.models.observation import Observation
 
 from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
+from predictionmodel.views import match_input_with_observations
 from sparql.exceptions import SparqlQueryFailedException
 
 
@@ -115,3 +117,61 @@ class TestPredictionModelPrepareView(TestCase):
         self.assertEqual(
             str(messages[0]), constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED
         )
+
+    @tag("current")
+    def test_matching_observation_and_input(self):
+        input_params = [
+            {
+                "code_parent": "C48885",
+                "input_type_parent": "ncit",
+                "parent_input_parameter": "Clinical_T",
+                "child_values": [
+                    {
+                        "code_child": "C48728",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cT3",
+                    },
+                    {
+                        "code_child": "C48732",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cT4",
+                    },
+                ],
+            },
+            {
+                "code_parent": "C48884",
+                "input_type_parent": "ncit",
+                "parent_input_parameter": "Clinical_N",
+                "child_values": [
+                    {
+                        "code_child": "C48705",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cN0",
+                    },
+                    {
+                        "code_child": "C48706",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cN1",
+                    },
+                ],
+            },
+        ]
+
+        observations_list = [
+            Observation(
+                {
+                    "code": {"coding": [{"code": "C48885", "system": "ncit"}]},
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "C48728", "system": "ncit"}]
+                    },
+                    "status": "final",
+                }
+            )
+        ]
+
+        result = match_input_with_observations(input_params, observations_list)
+
+        self.assertEqual(
+            result[0].get("matching_child_input").get("code_child"), "C48728"
+        )
+        self.assertEqual(result[1].get("matching_child_input"), None)

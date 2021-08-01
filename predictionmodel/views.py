@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -74,7 +74,7 @@ class PrepareModelWizard(TemplateView):
             ).get_patient_observations(patient_id)
 
             model_input_list = get_model_input_data(selected_model_uri)
-            context["model_input_list"] = get_matching_model_input(
+            context["model_input_list"] = match_input_with_observations(
                 model_input_list, patient_observations
             )
 
@@ -151,7 +151,7 @@ class PrepareModelWizard(TemplateView):
         return HttpResponseRedirect("/admin")
 
 
-def get_matching_model_input(input_parameters, observations_list):
+def match_input_with_observations(input_parameters, observations_list):
     for input_item in input_parameters:
         for observation_item in observations_list:
             if (
