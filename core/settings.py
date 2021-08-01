@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "log",
     "datasource",
     "predictionmodel",
-    "dockerengine",
+    "dockerfacade",
     "sparql",
 ]
 

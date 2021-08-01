@@ -5,7 +5,7 @@ from django.test import TestCase, Client, tag
 
 from django.urls import reverse
 
-from dockerengine.exceptions import DockerEngineFailedException
+from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
 from sparql.exceptions import SparqlQueryFailedException
 

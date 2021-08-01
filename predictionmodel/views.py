@@ -6,11 +6,11 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from datasource.models import FhirEndpoint
-from dockerengine.container import (
+from dockerfacade.container import (
     prepare_container_properties,
     run_model_container,
 )
-from dockerengine.exceptions import DockerEngineFailedException
+from dockerfacade.exceptions import DockerEngineFailedException
 from fhir.exceptions import FhirEndpointFailedException
 from fhir.client import Client as FhirClient
 from predictionmodel import constants
