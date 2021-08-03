@@ -65,7 +65,6 @@ class TestInputQuery(TestCase):
         },
     ]
 
-    @tag("current")
     @patch("sparql.query.query_from_string")
     def test_get_model_input_data(self, query_from_string_mock):
         query_from_string_mock.return_value = self.input_data

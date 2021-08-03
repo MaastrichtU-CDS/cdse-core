@@ -34,8 +34,7 @@ def get_model_input_data(selected_model_uri):
     input_data = query_from_string(query_string)
 
     unique_parent_inputs = get_unique_parent_list(input_data)
-    x = add_child_input_to_parent(input_data, unique_parent_inputs)
-    return x
+    return add_child_input_to_parent(input_data, unique_parent_inputs)
 
 
 def get_unique_parent_list(input_data):

@@ -33,11 +33,7 @@
             {% for input_item in model_input_list %}
             <tr>
                 <td>{{input_item.code_parent}}</td>
-                <td>
-                    {% if input_item.matching_child_input is not None %}
-                    {{ input_item.matching_child_input.code_child }}
-                    {% endif %}
-                </td>
+                <td>{% if input_item.matching_child_input is not None %}{{ input_item.matching_child_input.code_child }}{% endif %}</td>
                 <td>
                     <select name="override-{{input_item.code_parent}}" id="override-{{input_item.code_parent}}">
                         <option value="">---------</option>

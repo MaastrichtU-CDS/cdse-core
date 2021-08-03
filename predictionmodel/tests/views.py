@@ -6,6 +6,7 @@ from django.test import TestCase, Client, tag
 from django.urls import reverse
 from fhirclient.models.observation import Observation
 
+from datasource.models import FhirEndpoint
 from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
 from predictionmodel.views import match_input_with_observations
@@ -63,6 +64,89 @@ class TestPredictionModelPrepareView(TestCase):
     def tearDown(self):
         self.client.logout()
 
+    @patch(
+        "predictionmodel.views.get_model_input_data",
+        return_value=[
+            {
+                "code_parent": "C48885",
+                "input_type_parent": "ncit",
+                "parent_input_parameter": "Clinical_T",
+                "child_values": [
+                    {
+                        "code_child": "C48720",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cT1",
+                    },
+                    {
+                        "code_child": "C48728",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cT3",
+                    },
+                ],
+            },
+            {
+                "code_parent": "C48884",
+                "input_type_parent": "ncit",
+                "parent_input_parameter": "Clinical_N",
+                "child_values": [
+                    {
+                        "code_child": "C48705",
+                        "input_type_child": "ncit",
+                        "model_input_parameter": "cN0",
+                    },
+                ],
+            },
+        ],
+    )
+    @patch("fhir.client.client.FHIRClient")
+    @patch(
+        "predictionmodel.views.FhirClient.get_patient_name_and_birthdate",
+        return_value={"name": "James Doe", "birthdate": "01-01-1990"},
+    )
+    @patch(
+        "predictionmodel.views.FhirClient.get_patient_observations",
+        return_value=[
+            Observation(
+                {
+                    "code": {"coding": [{"code": "C48885", "system": "ncit"}]},
+                    "valueCodeableConcept": {
+                        "coding": [{"code": "C48728", "system": "ncit"}]
+                    },
+                    "status": "final",
+                }
+            )
+        ],
+    )
+    def test_get_view_with_valid_input(
+        self,
+        get_model_input_data_mock,
+        fhir_client_mock,
+        get_patient_name_and_birthdate_mock,
+        get_patient_observations_mock,
+    ):
+
+        FhirEndpoint.objects.create(
+            id=1, name="fhir_one", full_url="test-url", is_default=True
+        )
+
+        resp = self.client.get(
+            reverse("prediction_prepare"),
+            data={
+                "selected_model_uri": "test",
+                "patient_id": "1",
+                "fhir_endpoint_id": "1",
+            },
+            follow=False,
+        )
+
+        self.assertTemplateUsed(resp, "prediction/prepare.html")
+        self.assertContains(resp, "Name: James Doe", status_code=200)
+        self.assertContains(resp, "Birthdate: 01-01-1990", status_code=200)
+
+        self.assertContains(resp, "<td>C48885</td>", status_code=200)
+        self.assertContains(resp, "<td>C48884</td>", status_code=200)
+        self.assertContains(resp, "<td>C48728</td>", status_code=200)
+
     def test_post_with_no_model_selection(self):
         resp = self.client.post(
             reverse("prediction_prepare"),
@@ -118,6 +202,8 @@ class TestPredictionModelPrepareView(TestCase):
             str(messages[0]), constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED
         )
 
+
+class TestHelperFunctions(TestCase):
     def test_matching_observation_and_input(self):
         input_params = [
             {
