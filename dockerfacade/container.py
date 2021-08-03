@@ -5,7 +5,7 @@ from random import randint
 
 import docker
 
-from dockerengine.exceptions import DockerEngineFailedException
+from .exceptions import DockerEngineFailedException
 
 
 def run_model_container(image_name, image_id, invocation_url, port, secret_token):
