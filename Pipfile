@@ -21,6 +21,7 @@ requests = "*"
 django-extensions = "*"
 pyparsing = "*"
 pydot = "*"
+selenium = "*"
 
 [requires]
 python_version = "3.8"
