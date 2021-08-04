@@ -5,11 +5,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_422_UNPROCESSABLE_ENTITY
 
-TEST_INPUT_PAYLOAD = {
-    "Clinical_T": "cT1",
-    "Clinical_N": "cN0",
-}
-TEST_RESULT_PAYLOAD = {"testx": 1, "has_result_page": True}
+from .constants import TEST_INPUT_PAYLOAD, TEST_RESULT_PAYLOAD
 
 
 class TestPredictionApi(TestCase):

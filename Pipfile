@@ -24,6 +24,7 @@ pydot = "*"
 docker = "*"
 rdflib = "*"
 sparqlwrapper = "*"
+selenium = "*"
 
 [requires]
 python_version = "3.8"

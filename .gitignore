@@ -7,8 +7,7 @@
 node_modules/
 dist/
 #static files
-static/admin/
-static/admin
+static/
 static/django_extensions
 static/rest_framework
 # Compiled Java class files
