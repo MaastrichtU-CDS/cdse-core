@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, tag
+from django.test import TestCase, Client
 
 from django.urls import reverse
 
 from predictionmodel import constants
+from .constants import FOUND_MODEL_LIST
 
 
 class TestPredictionModelStartView(TestCase):
@@ -17,7 +18,6 @@ class TestPredictionModelStartView(TestCase):
     def tearDown(self):
         self.client.logout()
 
-    @tag("current")
     @patch(
         "predictionmodel.models.query_form_string",
         autospec=True,
@@ -33,18 +33,7 @@ class TestPredictionModelStartView(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), constants.ERROR_GET_MODEL_LIST_FAILED)
 
-    @patch(
-        "predictionmodel.models.query_form_string",
-        return_value=[
-            {
-                "model": {
-                    "type": "uri",
-                    "value": "https://gitlab.com/leroy.linssen.maastro/test/-/raw/main/rectalcancer.ttl",
-                },
-                "label": {"type": "literal", "value": "Rectal cancer BN model."},
-            }
-        ],
-    )
+    @patch("predictionmodel.models.query_form_string", return_value=FOUND_MODEL_LIST)
     def test_get_model_list_with_item(self, mocked_query):
         resp = self.client.get(reverse("prediction_start"))
 

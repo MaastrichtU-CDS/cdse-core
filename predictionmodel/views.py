@@ -57,10 +57,9 @@ class PrepareModelWizard(TemplateView):
         return context
 
     @staticmethod
-    def post(request, *args, **kwargs):
-        post_action = request.POST["action"]
+    def post(request):
         selected_model_uri = request.POST["selected_model_uri"]
-        if post_action == "start_prediction" and selected_model_uri != "":
+        if selected_model_uri != "":
 
             try:
                 docker_execution_data = get_model_execution_data(selected_model_uri)
