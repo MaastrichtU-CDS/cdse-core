@@ -4,6 +4,6 @@ ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED = (
     "Getting the prediction model description failed!"
 )
 ERROR_PREDICTION_MODEL_FAILED = "The selected prediction model is unable to start!"
-ERROR_REQUIRED_PARAMETERS_NOT_FOUND = (
-    "The patient id and prediction model are required parameters!"
-)
+ERROR_REQUIRED_INPUT_NOT_FOUND = "Please check all the input parameters! Missing:"
+ERROR_GET_DATA_FROM_FHIR_FAILED = "Please check the selected fhir endpoint!"
+ERROR_UNKNOWN = "Something went wrong please inform IT!"

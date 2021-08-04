@@ -5,22 +5,27 @@ from random import randint
 
 import docker
 
+from .exceptions import DockerEngineFailedException
+
 
 def run_model_container(image_name, image_id, invocation_url, port, secret_token):
-    client = docker.from_env()
-    client.containers.run(
-        image_name + "@" + image_id,
-        auto_remove=True,
-        detach=True,
-        ports={str(port) + "/tcp": port},
-        environment=[
-            "PORT=" + str(port),
-            "INVOCATION_HOST=" + invocation_url,
-            "SECRET_TOKEN=" + str(secret_token),
-            "TEMPLATE_DIR=template" "STATIC_DIR=static" "DEBUG=False",
-            "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0",
-        ],
-    )
+    try:
+        client = docker.from_env()
+        client.containers.run(
+            image_name + "@" + image_id,
+            auto_remove=True,
+            detach=True,
+            ports={str(port) + "/tcp": port},
+            environment=[
+                "PORT=" + str(port),
+                "INVOCATION_HOST=" + invocation_url,
+                "SECRET_TOKEN=" + str(secret_token),
+                "TEMPLATE_DIR=template" "STATIC_DIR=static" "DEBUG=False",
+                "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0",
+            ],
+        )
+    except Exception:
+        raise DockerEngineFailedException()
 
 
 def prepare_container_properties(image_name, image_id):

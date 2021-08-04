@@ -8,10 +8,13 @@
 <form action="{% url 'prediction_prepare' %}" method="post">
 
 {% csrf_token %}
+<input type="hidden" id="fhir_endpoint" name="fhir_endpoint" value="{{fhir_endpoint|default_if_none:''}}">
 <input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
 <input type="hidden" id="selected_model_uri" name="selected_model_uri" value="{{selected_model_uri|default_if_none:''}}">
-<p><strong>Selected patient ID: {{patient_id}}</strong></p>
 
+<p><strong>Selected fhir ID: {{fhir_endpoint}}</strong></p>
+<p><strong>Selected patient ID: {{patient_id}}</strong></p>
+<p><strong>Selected model URI: {{selected_model_uri}}</strong></p>
 
  <button type="submit" name='action' value="start_prediction" class="next-button">Start</button>
  </form>

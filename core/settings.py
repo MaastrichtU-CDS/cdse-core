@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "log",
     "datasource",
     "predictionmodel",
+    "dockerfacade",
+    "sparql",
 ]
 
 GRAPH_MODELS = {

@@ -5,7 +5,9 @@ from django.test import TestCase, Client
 
 from django.urls import reverse
 
+from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
+from sparql.exceptions import SparqlQueryFailedException
 from .constants import FOUND_MODEL_LIST
 
 
@@ -19,12 +21,11 @@ class TestPredictionModelStartView(TestCase):
         self.client.logout()
 
     @patch(
-        "predictionmodel.models.query_form_string",
+        "sparql.query.query_form_string",
         autospec=True,
-        side_effec=Exception(),
+        side_effect=SparqlQueryFailedException(),
     )
     def test_get_model_list_no_response(self, mocked_query):
-        mocked_query.return_value = Exception()
         resp = self.client.get(reverse("prediction_start"))
         messages = list(resp.context["messages"])
 
@@ -33,7 +34,7 @@ class TestPredictionModelStartView(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), constants.ERROR_GET_MODEL_LIST_FAILED)
 
-    @patch("predictionmodel.models.query_form_string", return_value=FOUND_MODEL_LIST)
+    @patch("sparql.query.query_form_string", return_value=FOUND_MODEL_LIST)
     def test_get_model_list_with_item(self, mocked_query):
         resp = self.client.get(reverse("prediction_start"))
 
@@ -65,7 +66,7 @@ class TestPredictionModelPrepareView(TestCase):
 
     @patch(
         "predictionmodel.views.run_model_container",
-        side_effect=Exception("Docker Error"),
+        side_effect=DockerEngineFailedException(),
     )
     @patch("predictionmodel.views.get_model_execution_data")
     def test_post_with_docker_error(
@@ -86,7 +87,7 @@ class TestPredictionModelPrepareView(TestCase):
     @patch("predictionmodel.views.run_model_container")
     @patch(
         "predictionmodel.views.get_model_execution_data",
-        side_effect=Exception("Error getting description"),
+        side_effect=SparqlQueryFailedException(),
     )
     def test_post_with_model_execution_data_error(
         self, run_model_container_mock, get_model_execution_data_mock
