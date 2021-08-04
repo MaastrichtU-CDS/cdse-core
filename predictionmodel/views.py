@@ -6,8 +6,16 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 
+from dockerfacade.containerService import (
+    prepare_container_properties,
+    run_model_container,
+)
 from predictionmodel import constants
-from predictionmodel.client import PredictionModelClient
+from predictionmodel.models import (
+    PredictionModelSession,
+    get_model_execution_data,
+    get_all_models,
+)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -18,7 +26,7 @@ class PrepareModelWizard(TemplateView):
         context = super().get_context_data(**kwargs)
 
         try:
-            context["prediction_models"] = PredictionModelClient.get_model_list()
+            context["prediction_models"] = get_all_models()
         except Exception as ex:
             messages.add_message(
                 self.request, messages.ERROR, constants.ERROR_GET_MODEL_LIST_FAILED
@@ -27,8 +35,30 @@ class PrepareModelWizard(TemplateView):
 
     @staticmethod
     def post(request, *args, **kwargs):
-        selected_model_id = request.POST["select_model_id"]
-        if selected_model_id == "":
+        post_action = request.POST["action"]
+        selected_model_uri = request.POST["selected_model_uri"]
+        if post_action == "start_prediction" and selected_model_uri != "":
+
+            docker_execution_data = get_model_execution_data(selected_model_uri)
+            container_props = prepare_container_properties(
+                docker_execution_data.get("image_name").get("value"),
+                docker_execution_data.get("image_id").get("value"),
+            )
+
+            PredictionModelSession.objects.create(
+                secret_token=container_props.get("secret_token"),
+                network_port=container_props.get("port"),
+                user=request.user,
+            )
+
+            try:
+                run_model_container(*container_props.values())
+            except Exception as ex:
+                messages.add_message(
+                    request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+                )
+
+        else:
             messages.add_message(
                 request, messages.WARNING, constants.NO_PREDICTION_MODEL_SELECTED
             )

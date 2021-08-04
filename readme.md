@@ -7,7 +7,11 @@ To get started with CDSE run the following commands (if possible in a virtual en
 - pipenv install
 - pipenv run python manage.py migrate
 - pipenv run python manage.py createsuperuser (and follow the instructions)
-- pipenv run python manage.py runserver
+- set the minimal env settings:
+    - DJANGO_ALLOWED_HOSTS=localhost;
+    - INVOCATION_HOST=192.168.3.42;
+    - INVOCATION_PORT=8000
+- pipenv run python manage.py runserver 0.0.0.0:8000
 
 Now you have started the application in local development mode.
 This mode uses only the local SQL-lite database to start. This mode uses no external authentication mechanism like 
