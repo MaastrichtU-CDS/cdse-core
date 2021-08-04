@@ -46,12 +46,12 @@ def generate_random_open_port():
 
     while not is_open:
         selected_port = randint(49152, 65535)
-        is_open = check_port_status(host, selected_port)
+        is_open = is_port_available(host, selected_port)
 
     return selected_port
 
 
-def check_port_status(host, selected_port):
+def is_port_available(host, selected_port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(2)
     result = sock.connect_ex((host, selected_port))

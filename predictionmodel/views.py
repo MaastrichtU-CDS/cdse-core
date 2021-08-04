@@ -19,7 +19,7 @@ from predictionmodel.models import (
 
 
 @method_decorator(login_required, name="dispatch")
-class PrepareModelWizard(TemplateView):
+class StartModelWizard(TemplateView):
     template_name = "prediction/start.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -31,33 +31,62 @@ class PrepareModelWizard(TemplateView):
             messages.add_message(
                 self.request, messages.ERROR, constants.ERROR_GET_MODEL_LIST_FAILED
             )
+
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class PrepareModelWizard(TemplateView):
+    template_name = "prediction/prepare.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+
+        patient_id = self.request.GET.get("patient_id")
+        selected_model_uri = self.request.GET.get("selected_model_uri")
+
+        if patient_id != "" or selected_model_uri != "":
+            context["patient_id"] = patient_id
+            context["selected_model_uri"] = selected_model_uri
+        else:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_REQUIRED_PARAMETERS_NOT_FOUND,
+            )
         return context
 
     @staticmethod
-    def post(request, *args, **kwargs):
-        post_action = request.POST["action"]
+    def post(request):
         selected_model_uri = request.POST["selected_model_uri"]
-        if post_action == "start_prediction" and selected_model_uri != "":
-
-            docker_execution_data = get_model_execution_data(selected_model_uri)
-            container_props = prepare_container_properties(
-                docker_execution_data.get("image_name").get("value"),
-                docker_execution_data.get("image_id").get("value"),
-            )
-
-            PredictionModelSession.objects.create(
-                secret_token=container_props.get("secret_token"),
-                network_port=container_props.get("port"),
-                user=request.user,
-            )
+        if selected_model_uri != "":
 
             try:
-                run_model_container(*container_props.values())
-            except Exception as ex:
-                messages.add_message(
-                    request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+                docker_execution_data = get_model_execution_data(selected_model_uri)
+                container_props = prepare_container_properties(
+                    docker_execution_data.get("image_name").get("value"),
+                    docker_execution_data.get("image_id").get("value"),
                 )
 
+                PredictionModelSession.objects.create(
+                    secret_token=container_props.get("secret_token"),
+                    network_port=container_props.get("port"),
+                    user=request.user,
+                )
+
+                try:
+                    run_model_container(*container_props.values())
+                except Exception as ex:
+                    messages.add_message(
+                        request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+                    )
+
+            except Exception as ex:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED,
+                )
         else:
             messages.add_message(
                 request, messages.WARNING, constants.NO_PREDICTION_MODEL_SELECTED

@@ -3,22 +3,23 @@
 {% block content %}
 
 <div class="wizard-main">
-<h1>Prediction Model Wizard</h1>
+<h1>Prediction Model Start</h1>
 
-<form action="{% url 'prediction_start' %}" method="post">
+<form action="{% url 'prediction_prepare' %}" method="get">
 
-{% csrf_token %}
+  <label for="patient_id">Patient ID:</label>
+  <input type="text" id="patient_id" name="patient_id" required="required">
+   <br><br>
 
-<p><strong>Select prediction model</strong></p>
-
- <select name="selected_model_uri" id="selected_model_uri">
-<option value="">---------</option>
-{% for model in prediction_models %}
-<option value="{{ model.uri }}">{{ model.label }}</option>
-{% endfor %}
+ <label for="selected_model_uri">Select a model:</label>
+ <select name="selected_model_uri" id="selected_model_uri" required="required">
+   <option value="">---------</option>
+  {% for model in prediction_models %}
+   <option value="{{ model.uri }}">{{ model.label }}</option>
+  {% endfor %}
  </select>
 
- <button type="submit" name='action' value="start_prediction" class="next-button">Start</button>
+ <button type="submit" name='action' value="next_screen" class="next-button">Next</button>
  </form>
  </div>
 {% endblock content %}
