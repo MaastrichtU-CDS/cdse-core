@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 
-from dockerEngine.containerService import (
+from dockerfacade.containerService import (
     prepare_container_properties,
     run_model_container,
 )
