@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, tag
+from django.test import TestCase, Client
 
 from django.urls import reverse
 from fhirclient.models.observation import Observation
@@ -11,6 +11,7 @@ from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
 from predictionmodel.views import match_input_with_observations
 from sparql.exceptions import SparqlQueryFailedException
+from .constants import FOUND_MODEL_LIST
 
 
 class TestPredictionModelStartView(TestCase):
@@ -36,18 +37,7 @@ class TestPredictionModelStartView(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), constants.ERROR_GET_MODEL_LIST_FAILED)
 
-    @patch(
-        "sparql.query.query_from_string",
-        return_value=[
-            {
-                "model": {
-                    "type": "uri",
-                    "value": "https://gitlab.com/leroy.linssen.maastro/test/-/raw/main/rectalcancer.ttl",
-                },
-                "label": {"type": "literal", "value": "Rectal cancer BN model."},
-            }
-        ],
-    )
+    @patch("sparql.query.query_from_string", return_value=FOUND_MODEL_LIST)
     def test_get_model_list_with_item(self, mocked_query):
         resp = self.client.get(reverse("prediction_start"))
 

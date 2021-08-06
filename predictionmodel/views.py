@@ -101,52 +101,43 @@ class PrepareModelWizard(TemplateView):
         return context
 
     @staticmethod
-    def post(request, *args, **kwargs):
-        post_action = request.POST["action"]
+    def post(request):
         selected_model_uri = request.POST["selected_model_uri"]
 
-        if post_action == "start_prediction":
-            try:
-                if selected_model_uri == "" or selected_model_uri is None:
-                    raise NoPredictionModelSelectedException()
-
-                docker_execution_data = get_model_execution_data(selected_model_uri)
-                container_props = prepare_container_properties(
-                    docker_execution_data.get("image_name").get("value"),
-                    docker_execution_data.get("image_id").get("value"),
-                )
-
-                PredictionModelSession.objects.create(
-                    secret_token=container_props.get("secret_token"),
-                    network_port=container_props.get("port"),
-                    user=request.user,
-                )
-
-                run_model_container(*container_props.values())
-
-            except DockerEngineFailedException:
-                messages.add_message(
-                    request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
-                )
-
-            except SparqlQueryFailedException:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED,
-                )
-
-            except NoPredictionModelSelectedException:
-                messages.add_message(
-                    request, messages.ERROR, constants.NO_PREDICTION_MODEL_SELECTED
-                )
-
-            except Exception:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    constants.ERROR_UNKNOWN,
-                )
+        try:
+            if selected_model_uri == "" or selected_model_uri is None:
+                raise NoPredictionModelSelectedException()
+            docker_execution_data = get_model_execution_data(selected_model_uri)
+            container_props = prepare_container_properties(
+                docker_execution_data.get("image_name").get("value"),
+                docker_execution_data.get("image_id").get("value"),
+            )
+            PredictionModelSession.objects.create(
+                secret_token=container_props.get("secret_token"),
+                network_port=container_props.get("port"),
+                user=request.user,
+            )
+            run_model_container(*container_props.values())
+        except DockerEngineFailedException:
+            messages.add_message(
+                request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
+            )
+        except SparqlQueryFailedException:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED,
+            )
+        except NoPredictionModelSelectedException:
+            messages.add_message(
+                request, messages.ERROR, constants.NO_PREDICTION_MODEL_SELECTED
+            )
+        except Exception:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                constants.ERROR_UNKNOWN,
+            )
 
         return HttpResponseRedirect("/admin")
 
