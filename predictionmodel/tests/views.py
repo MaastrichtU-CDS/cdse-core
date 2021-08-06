@@ -11,7 +11,7 @@ from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
 from predictionmodel.views import match_input_with_observations
 from sparql.exceptions import SparqlQueryFailedException
-from .constants import FOUND_MODEL_LIST
+from .constants import FOUND_MODEL_LIST, TEST_MODEL_INPUT_PARAMETERS, TEST_OBSERVATIONS
 
 
 class TestPredictionModelStartView(TestCase):
@@ -56,37 +56,7 @@ class TestPredictionModelPrepareView(TestCase):
 
     @patch(
         "predictionmodel.views.get_model_input_data",
-        return_value=[
-            {
-                "code_parent": "C48885",
-                "input_type_parent": "ncit",
-                "parent_input_parameter": "Clinical_T",
-                "child_values": [
-                    {
-                        "code_child": "C48720",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cT1",
-                    },
-                    {
-                        "code_child": "C48728",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cT3",
-                    },
-                ],
-            },
-            {
-                "code_parent": "C48884",
-                "input_type_parent": "ncit",
-                "parent_input_parameter": "Clinical_N",
-                "child_values": [
-                    {
-                        "code_child": "C48705",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cN0",
-                    },
-                ],
-            },
-        ],
+        return_value=TEST_MODEL_INPUT_PARAMETERS,
     )
     @patch("fhir.client.client.FHIRClient")
     @patch(
@@ -95,17 +65,7 @@ class TestPredictionModelPrepareView(TestCase):
     )
     @patch(
         "predictionmodel.views.FhirClient.get_patient_observations",
-        return_value=[
-            Observation(
-                {
-                    "code": {"coding": [{"code": "C48885", "system": "ncit"}]},
-                    "valueCodeableConcept": {
-                        "coding": [{"code": "C48728", "system": "ncit"}]
-                    },
-                    "status": "final",
-                }
-            )
-        ],
+        return_value=[Observation(TEST_OBSERVATIONS)],
     )
     def test_get_view_with_valid_input(
         self,
@@ -195,54 +155,9 @@ class TestPredictionModelPrepareView(TestCase):
 
 class TestHelperFunctions(TestCase):
     def test_matching_observation_and_input(self):
-        input_params = [
-            {
-                "code_parent": "C48885",
-                "input_type_parent": "ncit",
-                "parent_input_parameter": "Clinical_T",
-                "child_values": [
-                    {
-                        "code_child": "C48728",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cT3",
-                    },
-                    {
-                        "code_child": "C48732",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cT4",
-                    },
-                ],
-            },
-            {
-                "code_parent": "C48884",
-                "input_type_parent": "ncit",
-                "parent_input_parameter": "Clinical_N",
-                "child_values": [
-                    {
-                        "code_child": "C48705",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cN0",
-                    },
-                    {
-                        "code_child": "C48706",
-                        "input_type_child": "ncit",
-                        "model_input_parameter": "cN1",
-                    },
-                ],
-            },
-        ]
+        input_params = TEST_MODEL_INPUT_PARAMETERS
 
-        observations_list = [
-            Observation(
-                {
-                    "code": {"coding": [{"code": "C48885", "system": "ncit"}]},
-                    "valueCodeableConcept": {
-                        "coding": [{"code": "C48728", "system": "ncit"}]
-                    },
-                    "status": "final",
-                }
-            )
-        ]
+        observations_list = [Observation(TEST_OBSERVATIONS)]
 
         result = match_input_with_observations(input_params, observations_list)
 
