@@ -5,7 +5,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from sparql.exceptions import SparqlQueryFailedException
 
 HOST = os.environ.get(
-    "PREDICTION_MODEL_SERVICE", "http://localhost:7200/repositories/data"
+    "PREDICTION_MODEL_SERVICE", "http://localhost:7200/repositories/model_cache"
 )
 
 

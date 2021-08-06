@@ -20,6 +20,7 @@
                 <p>Birthdate: {{patient_information.birthdate}}</p>
             </div>
         </div>
+
         <table class="parameter-table">
             <thead>
             <tr>
@@ -32,17 +33,17 @@
             <tbody>
             {% for input_item in model_input_list %}
             <tr>
-                <td>{{input_item.code_parent}}</td>
-                <td>{% if input_item.matching_child_input is not None %}{{ input_item.matching_child_input.code_child }}{% endif %}</td>
+                <td>{{input_item.fhir_code_parent}}</td>
+                <td>{% if input_item.matching_child_parameter is not None %}{{input_item.matching_child_parameter.fhir_code_child }}{% endif %}</td>
                 <td>
-                    <select name="override-{{input_item.code_parent}}" id="override-{{input_item.code_parent}}">
+                    <select name="override-{{input_item.fhir_code_parent}}" id="override-{{input_item.fhir_code_parent}}">
                         <option value="">---------</option>
                         {% for child in input_item.child_values %}
-                        <option value="{{ child.code_child }}">{{ child.code_child }}</option>
+                        <option value="{{ child.fhir_code_child }}">{{ child.fhir_code_child }}</option>
                         {% endfor %}
                     </select>
                 </td>
-                <td id="reset-{{input_item.code_parent}}" class="text-underline cursor-pointer">Reset</td>
+                <td id="reset-{{input_item.fhir_code_parent}}" class="text-underline cursor-pointer">Reset</td>
             </tr>
             {% endfor %}
             </tbody>
@@ -56,10 +57,10 @@
 
 <script type="text/javascript">
 {% for input_item in model_input_list %}
-document.getElementById('reset-{{input_item.code_parent}}').onclick=function(){
-    var {{input_item.code_parent}} = document.querySelectorAll('#override-{{input_item.code_parent}} option');
-for (var i = 0, l = {{input_item.code_parent}}.length; i < l; i++) {
-    {{input_item.code_parent}}[i].selected = {{input_item.code_parent}}[i].defaultSelected;
+document.getElementById('reset-{{input_item.fhir_code_parent}}').onclick=function(){
+    var {{input_item.fhir_code_parent}} = document.querySelectorAll('#override-{{input_item.fhir_code_parent}} option');
+for (var i = 0, l = {{input_item.fhir_code_parent}}.length; i < l; i++) {
+    {{input_item.fhir_code_parent}}[i].selected = {{input_item.fhir_code_parent}}[i].defaultSelected;
 }}
 {% endfor %}
 

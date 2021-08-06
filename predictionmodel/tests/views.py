@@ -11,7 +11,12 @@ from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
 from predictionmodel.views import match_input_with_observations
 from sparql.exceptions import SparqlQueryFailedException
-from .constants import FOUND_MODEL_LIST, TEST_MODEL_INPUT_PARAMETERS, TEST_OBSERVATIONS
+from .constants import (
+    FOUND_MODEL_LIST,
+    TEST_MODEL_INPUT_PARAMETERS,
+    TEST_OBSERVATIONS,
+    TEST_PATIENT,
+)
 
 
 class TestPredictionModelStartView(TestCase):
@@ -61,7 +66,7 @@ class TestPredictionModelPrepareView(TestCase):
     @patch("fhir.client.client.FHIRClient")
     @patch(
         "predictionmodel.views.FhirClient.get_patient_name_and_birthdate",
-        return_value={"name": "James Doe", "birthdate": "01-01-1990"},
+        return_value=TEST_PATIENT,
     )
     @patch(
         "predictionmodel.views.FhirClient.get_patient_observations",
@@ -162,6 +167,6 @@ class TestHelperFunctions(TestCase):
         result = match_input_with_observations(input_params, observations_list)
 
         self.assertEqual(
-            result[0].get("matching_child_input").get("code_child"), "C48728"
+            result[0].get("matching_child_parameter").get("fhir_code_child"), "C48728"
         )
-        self.assertEqual(result[1].get("matching_child_input"), None)
+        self.assertEqual(result[1].get("matching_child_parameter"), None)

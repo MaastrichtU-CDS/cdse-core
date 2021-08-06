@@ -42,28 +42,28 @@ def get_unique_parent_list(input_data):
     for item in input_data:
         parent_list.append(
             {
-                "code_parent": item.get("code_parent").get("value"),
-                "input_type_parent": item.get("input_type_parent").get("value"),
-                "parent_input_parameter": item.get("parent_input_parameter").get(
+                "fhir_code_parent": item.get("fhir_code_parent").get("value"),
+                "fhir_code_system_parent": item.get("fhir_code_system_parent").get(
                     "value"
                 ),
+                "parent_parameter": item.get("parent_parameter").get("value"),
             }
         )
-    return list({item["code_parent"]: item for item in parent_list}.values())
+    return list({item["fhir_code_parent"]: item for item in parent_list}.values())
 
 
 def add_child_input_to_parent(input_data, parent_input):
     for parent in parent_input:
         parent["child_values"] = []
         for item in input_data:
-            if item.get("code_parent").get("value") in parent["code_parent"]:
+            if item.get("fhir_code_parent").get("value") in parent["fhir_code_parent"]:
                 parent["child_values"].append(
                     {
-                        "code_child": item.get("code_child").get("value"),
-                        "input_type_child": item.get("input_type_child").get("value"),
-                        "model_input_parameter": item.get("model_input_parameter").get(
-                            "value"
-                        ),
+                        "fhir_code_child": item.get("fhir_code_child").get("value"),
+                        "fhir_code_system_child": item.get(
+                            "fhir_code_system_child"
+                        ).get("value"),
+                        "child_parameter": item.get("child_parameter").get("value"),
                     }
                 )
     return parent_input

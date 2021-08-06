@@ -151,16 +151,16 @@ def match_input_with_observations(input_parameters, observations_list):
             ):
                 if (
                     observation_item.code.coding[0].system
-                    == input_item["input_type_parent"]
+                    == input_item["fhir_code_system_parent"]
                     and observation_item.code.coding[0].code
-                    == input_item["code_parent"]
+                    == input_item["fhir_code_parent"]
                 ):
                     for child_parameter in input_item["child_values"]:
                         if (
-                            child_parameter["input_type_child"]
-                            == observation_item.valueCodeableConcept.coding[0].system
-                            and child_parameter["code_child"]
-                            == observation_item.valueCodeableConcept.coding[0].code
+                            observation_item.valueCodeableConcept.coding[0].system
+                            == child_parameter["fhir_code_system_child"]
+                            and observation_item.valueCodeableConcept.coding[0].code
+                            == child_parameter["fhir_code_child"]
                         ):
-                            input_item["matching_child_input"] = child_parameter
+                            input_item["matching_child_parameter"] = child_parameter
     return input_parameters
