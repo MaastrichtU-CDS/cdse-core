@@ -33,13 +33,13 @@
             <tbody>
             {% for input_item in model_input_list %}
             <tr>
-                <td>{{input_item.fhir_code_parent}}</td>
-                <td>{% if input_item.matching_child_parameter is not None %}{{input_item.matching_child_parameter.fhir_code_child }}{% endif %}</td>
+                <td>{% if input_item.description_parent is not None %}{{input_item.description_parent}}{% else %}{{input_item.fhir_code_parent}}{% endif %}</td>
+                <td>{% if input_item.matching_child_parameter is not None %}{% if input_item.matching_child_parameter.description_child is not None %}{{input_item.matching_child_parameter.description_child}}{% else %}{{input_item.matching_child_parameter.fhir_code_child}}{% endif %}{% endif %}</td>
                 <td>
                     <select name="override-{{input_item.fhir_code_parent}}" id="override-{{input_item.fhir_code_parent}}">
                         <option value="">---------</option>
                         {% for child in input_item.child_values %}
-                        <option value="{{ child.fhir_code_child }}">{{ child.fhir_code_child }}</option>
+                        <option value="{{ child.fhir_code_child }}">{% if child.description_child is not None %}{{child.description_child}}{% else %}{{child.fhir_code_child}}{% endif %}</option>
                         {% endfor %}
                     </select>
                 </td>

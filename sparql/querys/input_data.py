@@ -7,7 +7,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT DISTINCT ?fhir_code_system_parent ?fhir_code_system_child ?fhir_code_parent ?fhir_code_child ?child_parameter ?parent_parameter
+SELECT DISTINCT ?fhir_code_system_parent ?fhir_code_system_child ?fhir_code_parent ?fhir_code_child ?child_parameter ?parent_parameter ?description_parent ?description_child
 WHERE {
     BIND (<%s> AS ?model).
 ?model fml:contains_algorithm ?algo.
@@ -21,14 +21,14 @@ WHERE {
 
 ?parent_node rdf:type ?parent_node_type.
 FILTER(?parent_node_type != fml:InformationElement).
-OPTIONAL{?parent_node_type rdfs:label ?o}.
+OPTIONAL{?parent_node_type rdfs:label ?description_parent}.
 BIND( REPLACE(STR(?parent_node_type), "#.*$", "") AS ?fhir_code_system_parent).
 BIND( REPLACE(STR(?parent_node_type), "^.*#", "") AS ?fhir_code_parent).
 
     
 ?source_obj rdf:type ?child_node_type.
 FILTER(?child_node_type != fml:InformationElement).
-OPTIONAL{?child_node_type rdfs:label ?o}.
+OPTIONAL{?child_node_type rdfs:label ?description_child}.
 BIND( REPLACE(STR(?child_node_type), "#.*$", "") AS ?fhir_code_system_child).
 BIND( REPLACE(STR(?child_node_type), "^.*#", "") AS ?fhir_code_child).
 }

@@ -20,6 +20,7 @@ TEST_MODEL_INPUT_PARAMETERS = [
         "fhir_code_parent": "C48885",
         "fhir_code_system_parent": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
         "parent_parameter": "Clinical_T",
+        "description_parent": "Generic Primary Tumor TNM Finding",
         "child_values": [
             {
                 "fhir_code_child": "C48720",

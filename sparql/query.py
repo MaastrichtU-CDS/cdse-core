@@ -47,6 +47,7 @@ def get_unique_parent_list(input_data):
                     "value"
                 ),
                 "parent_parameter": item.get("parent_parameter").get("value"),
+                "description_parent": item.get("description_parent").get("value", None),
             }
         )
     return list({item["fhir_code_parent"]: item for item in parent_list}.values())
@@ -64,6 +65,9 @@ def add_child_input_to_parent(input_data, parent_input):
                             "fhir_code_system_child"
                         ).get("value"),
                         "child_parameter": item.get("child_parameter").get("value"),
+                        "description_child": item.get("description_child").get(
+                            "value", None
+                        ),
                     }
                 )
     return parent_input

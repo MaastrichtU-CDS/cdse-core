@@ -98,7 +98,9 @@ class TestPredictionModelPrepareView(TestCase):
         self.assertContains(resp, "Name: James Doe", status_code=200)
         self.assertContains(resp, "Birthdate: 01-01-1990", status_code=200)
 
-        self.assertContains(resp, "<td>C48885</td>", status_code=200)
+        self.assertContains(
+            resp, "<td>Generic Primary Tumor TNM Finding</td>", status_code=200
+        )
         self.assertContains(resp, "<td>C48884</td>", status_code=200)
         self.assertContains(resp, "<td>C48728</td>", status_code=200)
 
