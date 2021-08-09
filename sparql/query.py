@@ -71,3 +71,9 @@ def add_child_input_to_parent(input_data, parent_input):
                     }
                 )
     return parent_input
+
+
+def get_child_parameter_by_code(model_input, child_code):
+    for child_input in model_input.get("child_values", []):
+        if child_input.get("fhir_code_child") == child_code:
+            return child_input

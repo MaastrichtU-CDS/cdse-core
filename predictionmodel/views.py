@@ -18,9 +18,14 @@ from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
 )
-from predictionmodel.models import PredictionModelSession
+from predictionmodel.models import PredictionModelSession, PredictionModelData
 from sparql.exceptions import SparqlQueryFailedException
-from sparql.query import get_all_models, get_model_execution_data, get_model_input_data
+from sparql.query import (
+    get_all_models,
+    get_model_execution_data,
+    get_model_input_data,
+    get_child_parameter_by_code,
+)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -112,11 +117,12 @@ class PrepareModelWizard(TemplateView):
                 docker_execution_data.get("image_name").get("value"),
                 docker_execution_data.get("image_id").get("value"),
             )
-            PredictionModelSession.objects.create(
+            prediction_session = PredictionModelSession.objects.create(
                 secret_token=container_props.get("secret_token"),
                 network_port=container_props.get("port"),
                 user=request.user,
             )
+            save_prediction_input(request.POST, prediction_session)
             run_model_container(*container_props.values())
         except DockerEngineFailedException:
             messages.add_message(
@@ -164,3 +170,48 @@ def match_input_with_observations(input_parameters, observations_list):
                         ):
                             input_item["matching_child_parameter"] = child_parameter
     return input_parameters
+
+
+def save_prediction_input(post_data, prediction_session):
+    selected_model_uri = post_data["selected_model_uri"]
+    model_input_list = get_model_input_data(selected_model_uri)
+
+    for model_input in model_input_list:
+        fhir_code_parent = model_input.get("fhir_code_parent")
+        fhir_code_system_parent = model_input.get("fhir_code_system_parent")
+        parent_parameter = model_input.get("parent_parameter")
+
+        fhir_code_child = post_data.get(fhir_code_parent, "")
+        fhir_code_child_override = post_data.get(fhir_code_parent + "-override", "")
+
+        if fhir_code_child_override != "":
+            fhir_code_child = fhir_code_child_override
+
+        if fhir_code_child == "":
+            pass
+
+        child_input_parameter = get_child_parameter_by_code(
+            model_input, fhir_code_child
+        )
+
+        fhir_code_child = child_input_parameter.get("fhir_code_child")
+        fhir_code_system_child = child_input_parameter.get("fhir_code_system_child")
+        child_parameter = child_input_parameter.get("child_parameter")
+
+        try:
+            model_input_data_child = PredictionModelData.objects.create(
+                system=fhir_code_system_child,
+                code=fhir_code_child,
+                input_parameter=child_parameter,
+                child_parameter=None,
+            )
+
+            PredictionModelData.objects.create(
+                system=fhir_code_system_parent,
+                code=fhir_code_parent,
+                input_parameter=parent_parameter,
+                child_parameter=model_input_data_child,
+                session=prediction_session,
+            )
+        except Exception as e:
+            print(e)
