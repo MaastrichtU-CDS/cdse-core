@@ -17,6 +17,7 @@ from predictionmodel import constants
 from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
+    CannotSaveModelInputException,
 )
 from predictionmodel.models import PredictionModelSession, PredictionModelData
 from sparql.exceptions import SparqlQueryFailedException
@@ -24,7 +25,6 @@ from sparql.query import (
     get_all_models,
     get_model_execution_data,
     get_model_input_data,
-    get_child_parameter_by_code,
 )
 
 
@@ -70,6 +70,7 @@ class PrepareModelWizard(TemplateView):
                     raise InvalidInputException("fhir_endpoint_id")
 
             fhir_endpoint_url = FhirEndpoint.get_full_url_by_id(fhir_endpoint_id)
+
             context["patient_information"] = FhirClient(
                 fhir_endpoint_url
             ).get_patient_name_and_birthdate(patient_id)
@@ -79,6 +80,7 @@ class PrepareModelWizard(TemplateView):
             ).get_patient_observations(patient_id)
 
             model_input_list = get_model_input_data(selected_model_uri)
+
             context["model_input_list"] = match_input_with_observations(
                 model_input_list, patient_observations
             )
@@ -112,6 +114,7 @@ class PrepareModelWizard(TemplateView):
         try:
             if selected_model_uri == "" or selected_model_uri is None:
                 raise NoPredictionModelSelectedException()
+
             docker_execution_data = get_model_execution_data(selected_model_uri)
             container_props = prepare_container_properties(
                 docker_execution_data.get("image_name").get("value"),
@@ -122,6 +125,7 @@ class PrepareModelWizard(TemplateView):
                 network_port=container_props.get("port"),
                 user=request.user,
             )
+
             save_prediction_input(request.POST, prediction_session)
             run_model_container(*container_props.values())
         except DockerEngineFailedException:
@@ -137,6 +141,10 @@ class PrepareModelWizard(TemplateView):
         except NoPredictionModelSelectedException:
             messages.add_message(
                 request, messages.ERROR, constants.NO_PREDICTION_MODEL_SELECTED
+            )
+        except CannotSaveModelInputException:
+            messages.add_message(
+                request, messages.ERROR, constants.ERROR_INPUT_DATA_SAVE_FAILED
             )
         except Exception:
             messages.add_message(
@@ -157,18 +165,17 @@ def match_input_with_observations(input_parameters, observations_list):
             ):
                 if (
                     observation_item.code.coding[0].system
-                    == input_item["fhir_code_system_parent"]
-                    and observation_item.code.coding[0].code
-                    == input_item["fhir_code_parent"]
+                    == input_item.fhir_code_system
+                    and observation_item.code.coding[0].code == input_item.fhir_code
                 ):
-                    for child_parameter in input_item["child_values"]:
+                    for child in input_item.children:
                         if (
                             observation_item.valueCodeableConcept.coding[0].system
-                            == child_parameter["fhir_code_system_child"]
+                            == child.fhir_code_system
                             and observation_item.valueCodeableConcept.coding[0].code
-                            == child_parameter["fhir_code_child"]
+                            == child.fhir_code
                         ):
-                            input_item["matching_child_parameter"] = child_parameter
+                            input_item.matched_child = child
     return input_parameters
 
 
@@ -176,42 +183,34 @@ def save_prediction_input(post_data, prediction_session):
     selected_model_uri = post_data["selected_model_uri"]
     model_input_list = get_model_input_data(selected_model_uri)
 
-    for model_input in model_input_list:
-        fhir_code_parent = model_input.get("fhir_code_parent")
-        fhir_code_system_parent = model_input.get("fhir_code_system_parent")
-        parent_parameter = model_input.get("parent_parameter")
-
-        fhir_code_child = post_data.get(fhir_code_parent, "")
-        fhir_code_child_override = post_data.get(fhir_code_parent + "-override", "")
-
-        if fhir_code_child_override != "":
-            fhir_code_child = fhir_code_child_override
-
-        if fhir_code_child == "":
-            pass
-
-        child_input_parameter = get_child_parameter_by_code(
-            model_input, fhir_code_child
-        )
-
-        fhir_code_child = child_input_parameter.get("fhir_code_child")
-        fhir_code_system_child = child_input_parameter.get("fhir_code_system_child")
-        child_parameter = child_input_parameter.get("child_parameter")
-
+    for parent_model_input in model_input_list:
         try:
+            fhir_code_child = post_data.get(parent_model_input.fhir_code, "")
+            fhir_code_child_override = post_data.get(
+                parent_model_input.fhir_code + "-override", ""
+            )
+
+            if fhir_code_child_override != "":
+                fhir_code_child = fhir_code_child_override
+
+            if fhir_code_child == "":
+                pass
+
+            child = parent_model_input.get_child_by_code(fhir_code_child)
+
             model_input_data_child = PredictionModelData.objects.create(
-                system=fhir_code_system_child,
-                code=fhir_code_child,
-                input_parameter=child_parameter,
+                system=child.fhir_code_system,
+                code=child.fhir_code,
+                input_parameter=child.parameter,
                 child_parameter=None,
             )
 
             PredictionModelData.objects.create(
-                system=fhir_code_system_parent,
-                code=fhir_code_parent,
-                input_parameter=parent_parameter,
+                system=parent_model_input.fhir_code_system,
+                code=parent_model_input.fhir_code,
+                input_parameter=parent_model_input.parameter,
                 child_parameter=model_input_data_child,
                 session=prediction_session,
             )
-        except Exception as e:
-            print(e)
+        except Exception:
+            raise CannotSaveModelInputException()

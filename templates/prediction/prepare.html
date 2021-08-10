@@ -33,21 +33,21 @@
             <tbody>
             {% for input_item in model_input_list %}
             <tr>
-                <td>{% if input_item.description_parent is not None %}{{input_item.description_parent}}{% else %}{{input_item.fhir_code_parent}}{% endif %}</td>
-                <td>{% if input_item.matching_child_parameter is not None %}{% if input_item.matching_child_parameter.description_child is not None %}{{input_item.matching_child_parameter.description_child}}{% else %}{{input_item.matching_child_parameter.fhir_code_child}}{% endif %}{% endif %}</td>
+                <td>{% if input_item.description is not None %}{{input_item.description}}{% else %}{{input_item.fhir_code}}{% endif %}</td>
+                <td>{% if input_item.matched_child is not None %}{% if input_item.matched_child.description is not None %}{{input_item.matched_child.description}}{% else %}{{input_item.matched_child.fhir_code}}{% endif %}{% endif %}</td>
                 <td>
-                    <select name="{{input_item.fhir_code_parent}}-override" id="{{input_item.fhir_code_parent}}-override">
+                    <select name="{{input_item.fhir_code}}-override" id="{{input_item.fhir_code}}-override">
                         <option value="">---------</option>
-                        {% for child in input_item.child_values %}
-                        <option value="{{ child.fhir_code_child }}">{% if child.description_child is not None %}{{child.description_child}}{% else %}{{child.fhir_code_child}}{% endif %}</option>
+                        {% for child in input_item.children %}
+                        <option value="{{ child.fhir_code }}">{% if child.description is not None %}{{child.description}}{% else %}{{child.fhir_code}}{% endif %}</option>
                         {% endfor %}
                     </select>
                 </td>
-                <td id="reset-{{input_item.fhir_code_parent}}" class="text-underline cursor-pointer">Reset</td>
+                <td id="reset-{{input_item.fhir_code}}" class="text-underline cursor-pointer">Reset</td>
             </tr>
 
-            <input type="hidden" id="{{input_item.fhir_code_parent}}" name="{{input_item.fhir_code_parent}}"
-                   value="{{input_item.matching_child_parameter.fhir_code_child|default_if_none:''}}">
+            <input type="hidden" id="{{input_item.fhir_code}}" name="{{input_item.fhir_code}}"
+                   value="{{input_item.matched_child.fhir_code|default_if_none:''}}">
             {% endfor %}
             </tbody>
         </table>
@@ -60,10 +60,10 @@
 
 <script type="text/javascript">
 {% for input_item in model_input_list %}
-document.getElementById('reset-{{input_item.fhir_code_parent}}').onclick=function(){
-    var {{input_item.fhir_code_parent}} = document.querySelectorAll('#{{input_item.fhir_code_parent}}-override option');
-for (var i = 0, l = {{input_item.fhir_code_parent}}.length; i < l; i++) {
-    {{input_item.fhir_code_parent}}[i].selected = {{input_item.fhir_code_parent}}[i].defaultSelected;
+document.getElementById('reset-{{input_item.fhir_code}}').onclick=function(){
+    var {{input_item.fhir_code}} = document.querySelectorAll('#{{input_item.fhir_code}}-override option');
+for (var i = 0, l = {{input_item.fhir_code}}.length; i < l; i++) {
+    {{input_item.fhir_code}}[i].selected = {{input_item.fhir_code}}[i].defaultSelected;
 }}
 {% endfor %}
 
