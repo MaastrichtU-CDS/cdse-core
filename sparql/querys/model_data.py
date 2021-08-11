@@ -1,6 +1,5 @@
-def query_model_input_data(model_uri):
-    return (
-        """
+def query_model_data(model_uri, data_type):
+    return """
 PREFIX fml: <https://fairmodels.org/ontology.owl#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -11,7 +10,7 @@ SELECT DISTINCT ?fhir_code_system_parent ?fhir_code_system_child ?fhir_code_pare
 WHERE {
     BIND (<%s> AS ?model).
 ?model fml:contains_algorithm ?algo.
-?algo fml:has_input_parameter ?input_parameters.
+?algo fml:%s ?input_parameters.
 ?input_parameters fml:has_translation ?translated_input.
 ?translated_input fml:target_value ?child_parameter.
 ?translated_input fml:source_object ?source_obj.
@@ -32,6 +31,7 @@ OPTIONAL{?child_node_type rdfs:label ?description_child}.
 BIND( REPLACE(STR(?child_node_type), "#.*$", "") AS ?fhir_code_system_child).
 BIND( REPLACE(STR(?child_node_type), "^.*#", "") AS ?fhir_code_child).
 }
-"""
-        % model_uri
+""" % (
+        model_uri,
+        data_type,
     )

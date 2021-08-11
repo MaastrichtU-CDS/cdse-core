@@ -1,8 +1,8 @@
-from sparql.models import ModelInput
+from sparql.models import ModelData
 from sparql.queryExecutor import query_from_string
 from sparql.querys.all_models import query_all_models
 from sparql.querys.execution_data import query_model_execution_data
-from sparql.querys.input_data import query_model_input_data
+from sparql.querys.model_data import query_model_data
 
 
 def get_all_models():
@@ -31,15 +31,24 @@ def get_model_execution_data(selected_model_uri):
 
 
 def get_model_input_data(selected_model_uri):
-    query_string = query_model_input_data(selected_model_uri)
-    input_data = query_from_string(query_string)
+    query_string = query_model_data(selected_model_uri, "has_input_parameter")
+    return _get_model_data(query_string)
 
-    parent_inputs = get_parent_list(input_data)
-    return add_child_input_to_parent(input_data, parent_inputs)
+
+def get_model_output_data(selected_model_uri):
+    query_string = query_model_data(selected_model_uri, "has_output_parameter")
+    return _get_model_data(query_string)
+
+
+def _get_model_data(query_string):
+    model_data = query_from_string(query_string)
+
+    parent_inputs = get_parent_list(model_data)
+    return add_child_input_to_parent(model_data, parent_inputs)
 
 
 def get_parent_list(input_data):
-    parent_list: list(ModelInput) = []
+    parent_list: list(ModelData) = []
 
     for item in list(
         {
@@ -47,7 +56,7 @@ def get_parent_list(input_data):
         }.values()
     ):
         parent_list.append(
-            ModelInput(
+            ModelData(
                 item.get("fhir_code_parent").get("value"),
                 item.get("fhir_code_system_parent").get("value"),
                 item.get("parent_parameter").get("value"),
@@ -65,7 +74,7 @@ def add_child_input_to_parent(input_data, parent_input):
         for item in input_data:
             if item.get("fhir_code_parent").get("value") in parent.fhir_code:
                 parent.children.append(
-                    ModelInput(
+                    ModelData(
                         item.get("fhir_code_child").get("value"),
                         item.get("fhir_code_system_child").get("value"),
                         item.get("child_parameter").get("value"),

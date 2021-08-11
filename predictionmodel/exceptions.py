@@ -1,3 +1,6 @@
+from rest_framework.exceptions import APIException
+
+
 class InvalidInputException(Exception):
     """Indicating a required input parameter is missing."""
 
@@ -11,3 +14,17 @@ class NoPredictionModelSelectedException(Exception):
 
 class CannotSaveModelInputException(Exception):
     """Indicating some model inputs cannot be saved of linked to a session."""
+
+
+class CannotProcessModelOutputException(APIException):
+    status_code = 422
+    default_detail = "The given payload is either not compatible with the model description or invalid."
+    default_code = "unprocessable entity"
+
+
+class InvalidSessionToken(APIException):
+    status_code = 403
+    default_detail = (
+        "Provided session token is not valid, please provide a valid token."
+    )
+    default_code = "forbidden"

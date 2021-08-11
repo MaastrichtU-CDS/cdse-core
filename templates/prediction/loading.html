@@ -1,0 +1,60 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="wizard-main">
+  <div class="loader"></div>
+  <br>
+  <h1 class="loading-text">Please wait...</h1>
+  <a href="/prediction/start" class="next-button not-visible">Restart</a>
+</div>
+
+<script type="text/javascript">
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+var params = new window.URLSearchParams(window.location.search);
+(function poll() {
+    $.ajax({
+        url: "{% url 'check_result' %}",
+        type: "GET",
+        success: function(result) {
+            if(result){
+               window.location.replace("{% url 'prediction_result' %}" + "?session_token=" + params.get
+               ('session_token'));
+            }
+        },
+        dataType: "json",
+            headers: {
+            "X-CSRFToken": csrftoken,
+            "Authorization": params.get('session_token'),
+            },
+        complete: setTimeout(function() { poll(); }, 2000),
+        timeout: 2000
+    })
+})();
+
+function error() {
+  $(".next-button").removeClass("not-visible");
+  $(".next-button").addClass("red-bg");
+  $(".loader").addClass("not-visible");
+  $( ".loading-text" ).last().html( "{{ error_message }}" );
+}
+
+setTimeout(function() { error(); }, {{ time_out_milliseconds }});
+
+</script>
+{% endblock content %}

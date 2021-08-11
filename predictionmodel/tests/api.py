@@ -6,8 +6,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework.status import (
     HTTP_200_OK,
-    HTTP_422_UNPROCESSABLE_ENTITY,
-    HTTP_401_UNAUTHORIZED,
+    HTTP_403_FORBIDDEN,
 )
 
 from .constants import TEST_INPUT_PAYLOAD, TEST_RESULT_PAYLOAD
@@ -52,11 +51,11 @@ class TestPredictionApi(TestCase):
     def test_ready_api_wrong_token(self):
         client_response = self.client.get(reverse("get_model_input"))
 
-        self.assertEqual(client_response.status_code, HTTP_401_UNAUTHORIZED)
+        self.assertEqual(client_response.status_code, HTTP_403_FORBIDDEN)
 
     @responses.activate
     def test_result_api(self):
-        headers = {"HTTP_AUTHORIZATION": "secret"}
+        headers = {"HTTP_AUTHORIZATION": str(self.uuid)}
 
         response = self.client.post(
             reverse("post_result"),
@@ -66,13 +65,3 @@ class TestPredictionApi(TestCase):
         )
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-
-    @responses.activate
-    def test_incomplete_result_api(self):
-        response = self.client.post(
-            reverse("post_result"),
-            data=json.dumps({"x": 1}),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, HTTP_422_UNPROCESSABLE_ENTITY)

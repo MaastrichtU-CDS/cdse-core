@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="wizard-main">
+  <h1>Prediction Results</h1>
+
+<div class="mid">
+  {% for parent_item in parent_results %}
+
+  {% for output_data in output_data_list %}
+    {% if output_data.fhir_code == parent_item.code and output_data.fhir_code_system == parent_item.system %}
+       <h2>{% if output_data.description is not None %}{{ output_data.description }}{% else %}{{parent_item.code}}{% endif %}</h2>
+
+
+          <table class="parameter-table">
+            <thead>
+            <tr>
+                <th>Parameter</th>
+                <th>Result</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+
+      {% for child_item in child_results %}
+        {% if child_item.parent_parameter.id == parent_item.id %}
+
+            {% for output_data_child in output_data.children %}
+              {% if output_data_child.fhir_code == child_item.code and output_data_child.fhir_code_system == child_item.system %}
+              <td>{% if output_data_child.description is not None %}{{ output_data_child.description }}{% else %}{{child_item.code}}{% endif %}</td>
+              <td>{{child_item.calculated_value}}</td>
+            {% endif %}
+          {% endfor %}
+
+                  </tr>
+
+
+        {% endif %}
+     {% endfor %}
+
+            </tbody>
+        </table>
+  {% endif %}
+      {% endfor %}
+  {% endfor %}
+
+
+<!--  <iframe src="http://127.0.0.1:{{prediction_session.network_port}}"></iframe>-->
+  <a href="/prediction/start" class="next-button">Restart</a>
+</div>
+</div>
+
+{% endblock content %}

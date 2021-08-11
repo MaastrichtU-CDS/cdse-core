@@ -1,4 +1,4 @@
-from sparql.models import ModelInput
+from sparql.models import ModelData
 
 FOUND_MODEL_LIST = [
     {
@@ -14,7 +14,7 @@ TEST_INPUT_PAYLOAD = {"one": "two"}
 
 TEST_RESULT_PAYLOAD = {"testx": 1, "has_result_page": True}
 
-TEST_MODEL_INPUT_CHILD_PARAMETER = ModelInput(
+TEST_MODEL_INPUT_CHILD_PARAMETER = ModelData(
     "C48720",
     "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
     "cT1",
@@ -23,7 +23,7 @@ TEST_MODEL_INPUT_CHILD_PARAMETER = ModelInput(
     None,
 )
 
-TEST_MODEL_INPUT_PARAMETERS = ModelInput(
+TEST_MODEL_INPUT_PARAMETERS = ModelData(
     "C48885",
     "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
     "Clinical_T",

@@ -137,7 +137,12 @@ class TestPredictionModelPrepareView(TestCase):
     ):
         resp = self.client.post(
             reverse("prediction_prepare"),
-            data={"selected_model_uri": "test", "action": "start_prediction"},
+            data={
+                "selected_model_uri": "test",
+                "action": "start_prediction",
+                "patient_id": "1",
+                "fhir_endpoint_id": "1",
+            },
             follow=True,
         )
 
@@ -157,7 +162,12 @@ class TestPredictionModelPrepareView(TestCase):
     ):
         resp = self.client.post(
             reverse("prediction_prepare"),
-            data={"selected_model_uri": "test", "action": "start_prediction"},
+            data={
+                "selected_model_uri": "test",
+                "action": "start_prediction",
+                "patient_id": "1",
+                "fhir_endpoint_id": "1",
+            },
             follow=True,
         )
 
