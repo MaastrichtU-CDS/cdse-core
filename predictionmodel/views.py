@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
@@ -20,6 +21,7 @@ from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
     CannotSaveModelInputException,
+    InvalidSessionTokenException,
 )
 from predictionmodel.models import (
     PredictionModelSession,
@@ -285,27 +287,41 @@ class ResultWizard(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        secret_token = self.request.GET["session_token"]
+        secret_token = self.request.GET.get("session_token", "")
 
-        prediction_session = PredictionModelSession.objects.get(
-            secret_token=secret_token
-        )
+        try:
+            if secret_token == "" or secret_token is None:
+                raise InvalidSessionTokenException()
 
-        output_data_list = get_model_output_data(prediction_session.model_uri)
-        parent_results = prediction_session.predictionmodelresult_set.filter(
-            parent_parameter__isnull=True
-        )
-
-        child_results = []
-        for parent_item in parent_results:
-            child_list = PredictionModelResult.objects.filter(
-                parent_parameter=parent_item
+            prediction_session = PredictionModelSession.objects.get(
+                secret_token=secret_token
             )
-            for child in child_list:
-                child_results.append(child)
 
-        context["output_data_list"] = output_data_list
-        context["parent_results"] = parent_results
-        context["child_results"] = child_results
+            output_data_list = get_model_output_data(prediction_session.model_uri)
+            parent_results = prediction_session.predictionmodelresult_set.filter(
+                parent_parameter__isnull=True
+            )
+
+            child_results = []
+            for parent_item in parent_results:
+                child_list = PredictionModelResult.objects.filter(
+                    parent_parameter=parent_item
+                )
+                for child in child_list:
+                    child_results.append(child)
+
+            context["output_data_list"] = output_data_list
+            context["parent_results"] = parent_results
+            context["child_results"] = child_results
+
+        except (ObjectDoesNotExist, InvalidSessionTokenException):
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_PROVIDED_SESSION_TOKEN_INVALID,
+            )
+
+        except Exception:
+            messages.add_message(self.request, messages.ERROR, constants.ERROR_UNKNOWN)
 
         return context

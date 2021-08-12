@@ -1,6 +1,5 @@
 import json
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.urls import path
 
 from rest_framework import status
@@ -8,8 +7,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from predictionmodel.exceptions import (
-    InvalidSessionToken,
     CannotProcessModelOutputException,
+    APIExceptionInvalidSessionToken,
 )
 from predictionmodel.models import PredictionModelSession, PredictionModelResult
 from sparql.query import get_model_output_data
@@ -76,7 +75,7 @@ def check_calculation_complete(request):
 def _get_prediction_session(request):
     secret_token = request.META.get("HTTP_AUTHORIZATION", "")
     if secret_token == "" or secret_token is None:
-        raise InvalidSessionToken()
+        raise APIExceptionInvalidSessionToken()
 
     try:
         prediction_session = PredictionModelSession.objects.get(
@@ -85,7 +84,7 @@ def _get_prediction_session(request):
         return prediction_session
 
     except Exception:
-        raise InvalidSessionToken()
+        raise APIExceptionInvalidSessionToken()
 
 
 urlpatterns = [

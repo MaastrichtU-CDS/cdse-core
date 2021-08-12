@@ -85,3 +85,18 @@ TEST_OBSERVATIONS = {
     },
     "status": "final",
 }
+
+TEST_DOCKER_EXECUTION_DATA = {
+    "image_name": {"type": "literal", "value": "lery/bn-test:latest"},
+    "model_label": {"type": "literal", "value": "Rectal cancer BN model."},
+    "fhir_version": {"type": "literal", "value": "4.0"},
+    "exec_type": {
+        "type": "uri",
+        "value": "https://fairmodels.org/ontology.owl#docker_execution",
+    },
+    "image_id": {
+        "type": "literal",
+        "value": "sha256:d1a150476cc5cb6424dacafc8b6ca4195ad41a81bd3d95a853d7ee95767004c8",
+    },
+    "host_env": {"type": "literal", "value": "linux"},
+}

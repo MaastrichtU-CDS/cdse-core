@@ -10,7 +10,11 @@ from fhirclient.models.observation import Observation
 from datasource.models import FhirEndpoint
 from dockerfacade.exceptions import DockerEngineFailedException
 from predictionmodel import constants
-from predictionmodel.views import match_input_with_observations, save_prediction_input
+from predictionmodel.views import (
+    match_input_with_observations,
+    save_prediction_input,
+    create_prediction_session,
+)
 from sparql.exceptions import SparqlQueryFailedException
 from .constants import (
     FOUND_MODEL_LIST,
@@ -20,9 +24,13 @@ from .constants import (
     TEST_MODEL_INPUT_CHILD_PARAMETER,
     TEST_SESSION,
     TEST_CONTAINER_PROPS,
+    TEST_MODEL_OUTPUT_PARAMETERS,
+    TEST_MODEL_OUTPUT_CHILD_PARAMETER,
+    TEST_DOCKER_EXECUTION_DATA,
 )
+from ..constants import ERROR_PREDICTION_CALCULATION_TIME_OUT
 from ..exceptions import CannotSaveModelInputException
-from ..models import PredictionModelSession, PredictionModelData
+from ..models import PredictionModelSession, PredictionModelData, PredictionModelResult
 
 
 class TestPredictionModelStartView(TestCase):
@@ -217,6 +225,88 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         )
 
 
+class TestPredictionModelLoadingView(TransactionTestCase):
+    def setUp(self):
+        User.objects.create_superuser("admin", "admin@example.com", "Password123")
+        self.client = Client()
+        self.client.login(username="admin", password="Password123")
+
+    def tearDown(self):
+        self.client.logout()
+
+    def test_get_loading_view(self):
+        resp = self.client.get(reverse("prediction_loading"))
+
+        self.assertEqual(
+            resp.context["error_message"], ERROR_PREDICTION_CALCULATION_TIME_OUT
+        )
+        self.assertEqual(resp.context["time_out_milliseconds"], 8000)
+        self.assertContains(
+            resp, """<h1 class="loading-text">Please wait...</h1>""", status_code=200
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, "prediction/loading.html")
+
+
+class TestPredictionModelResultView(TransactionTestCase):
+    def setUp(self):
+        User.objects.create_superuser("admin", "admin@example.com", "Password123")
+        self.client = Client()
+        self.client.login(username="admin", password="Password123")
+
+        self.uuid = uuid.uuid4()
+        self.prediction_session = PredictionModelSession.objects.create(
+            secret_token=self.uuid, network_port=1001, user=None
+        )
+
+        self.parent_result = PredictionModelResult.objects.create(
+            system=TEST_MODEL_OUTPUT_PARAMETERS.fhir_code_system,
+            code=TEST_MODEL_OUTPUT_PARAMETERS.fhir_code,
+            parameter=TEST_MODEL_OUTPUT_PARAMETERS.parameter,
+            parent_parameter=None,
+            calculated_value=None,
+            session=self.prediction_session,
+        )
+
+        self.child_result = PredictionModelResult.objects.create(
+            system=TEST_MODEL_OUTPUT_CHILD_PARAMETER.fhir_code_system,
+            code=TEST_MODEL_OUTPUT_CHILD_PARAMETER.fhir_code,
+            parameter=TEST_MODEL_OUTPUT_CHILD_PARAMETER.parameter,
+            parent_parameter=self.parent_result,
+            calculated_value="0.1",
+            session=None,
+        )
+
+    def tearDown(self):
+        self.client.logout()
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_result_view(self, get_model_output_data_mock):
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, """<td>T0 Stage Finding</td>""", status_code=200)
+        self.assertContains(resp, """<td>0.1</td>""", status_code=200)
+        self.assertTemplateUsed(resp, "prediction/result.html")
+
+    def test_get_result_view_wrong_token(self):
+        resp = self.client.get(reverse("prediction_result"))
+
+        messages = list(resp.context["messages"])
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, "prediction/result.html")
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            str(messages[0]), constants.ERROR_PROVIDED_SESSION_TOKEN_INVALID
+        )
+
+
 class TestHelperFunctions(TestCase):
     def test_matching_observation_and_input(self):
         input_params = [TEST_MODEL_INPUT_PARAMETERS]
@@ -282,3 +372,51 @@ class TestHelperFunctions(TestCase):
         self.assertEqual(
             child_input.system, TEST_MODEL_INPUT_CHILD_PARAMETER.fhir_code_system
         )
+
+    @patch(
+        "predictionmodel.views.get_model_execution_data",
+        return_value=TEST_DOCKER_EXECUTION_DATA,
+    )
+    def test_create_prediction_session(self, get_model_execution_data_mock):
+        fhir_endpoint = FhirEndpoint.objects.create(
+            name="test_point",
+            description="my description",
+            full_url="http://test",
+            is_default=False,
+        )
+
+        selected_model_uri = "http://test"
+        patient_id = "1"
+
+        prediction_session, container_values = create_prediction_session(
+            selected_model_uri, patient_id, fhir_endpoint.id, None
+        )
+
+        self.assertEqual(prediction_session.patient_id, patient_id)
+        self.assertEqual(prediction_session.data_source, fhir_endpoint)
+        self.assertEqual(prediction_session.image_name, "lery/bn-test:latest")
+        self.assertEqual(
+            prediction_session.image_id,
+            "sha256:d1a150476cc5cb6424dacafc8b6ca4195ad41a81bd3d95a853d7ee95767004c8",
+        )
+        self.assertFalse(prediction_session.calculation_complete)
+        self.assertEqual(prediction_session.model_uri, selected_model_uri)
+
+    @patch(
+        "predictionmodel.views.get_model_execution_data",
+        return_value=TEST_DOCKER_EXECUTION_DATA,
+    )
+    def test_invalid_prediction_session(self, get_model_execution_data_mock):
+        fhir_endpoint = FhirEndpoint.objects.create(
+            name="test_point",
+            description="my description",
+            full_url="http://test",
+            is_default=False,
+        )
+
+        selected_model_uri = "http://test"
+
+        with self.assertRaises(CannotSaveModelInputException):
+            prediction_session, container_values = create_prediction_session(
+                selected_model_uri, None, fhir_endpoint.id, None
+            )
