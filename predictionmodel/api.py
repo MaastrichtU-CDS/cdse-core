@@ -84,7 +84,7 @@ def _get_prediction_session(request):
         )
         return prediction_session
 
-    except ObjectDoesNotExist:
+    except Exception:
         raise InvalidSessionToken()
 
 
