@@ -2,7 +2,7 @@ import uuid
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase, Client, TransactionTestCase
 
 from django.urls import reverse
 from fhirclient.models.observation import Observation
@@ -18,7 +18,10 @@ from .constants import (
     TEST_OBSERVATIONS,
     TEST_PATIENT,
     TEST_MODEL_INPUT_CHILD_PARAMETER,
+    TEST_SESSION,
+    TEST_CONTAINER_PROPS,
 )
+from ..exceptions import CannotSaveModelInputException
 from ..models import PredictionModelSession, PredictionModelData
 
 
@@ -53,11 +56,18 @@ class TestPredictionModelStartView(TestCase):
         self.assertTemplateUsed(resp, "prediction/start.html")
 
 
-class TestPredictionModelPrepareView(TestCase):
+class TestPredictionModelPrepareView(TransactionTestCase):
     def setUp(self):
         User.objects.create_superuser("admin", "admin@example.com", "Password123")
         self.client = Client()
         self.client.login(username="admin", password="Password123")
+
+        self.endpoint = FhirEndpoint.objects.create(
+            name="test_point",
+            description="my description",
+            full_url="http://test",
+            is_default=False,
+        )
 
     def tearDown(self):
         self.client.logout()
@@ -83,16 +93,12 @@ class TestPredictionModelPrepareView(TestCase):
         get_patient_observations_mock,
     ):
 
-        FhirEndpoint.objects.create(
-            id=1, name="fhir_one", full_url="test-url", is_default=True
-        )
-
         resp = self.client.get(
             reverse("prediction_prepare"),
             data={
                 "selected_model_uri": "test",
                 "patient_id": "1",
-                "fhir_endpoint_id": "1",
+                "fhir_endpoint_id": self.endpoint.id,
             },
             follow=False,
         )
@@ -127,12 +133,43 @@ class TestPredictionModelPrepareView(TestCase):
         "predictionmodel.views.run_model_container",
         side_effect=DockerEngineFailedException(),
     )
-    @patch("predictionmodel.views.get_model_execution_data")
+    @patch("predictionmodel.views.create_prediction_session")
     @patch("predictionmodel.views.save_prediction_input")
     def test_post_with_docker_error(
         self,
         run_model_container_mock,
-        get_model_execution_data_mock,
+        create_prediction_session_mock,
+        save_prediction_input_mock,
+    ):
+        create_prediction_session_mock.return_value = [
+            TEST_SESSION,
+            TEST_CONTAINER_PROPS,
+        ]
+        resp = self.client.post(
+            reverse("prediction_prepare"),
+            data={
+                "selected_model_uri": "test",
+                "action": "start_prediction",
+                "patient_id": "1",
+                "fhir_endpoint_id": "1",
+            },
+            follow=True,
+        )
+
+        messages = list(resp.context["messages"])
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), constants.ERROR_PREDICTION_MODEL_FAILED)
+
+    @patch(
+        "predictionmodel.views.create_prediction_session",
+        side_effect=CannotSaveModelInputException(),
+    )
+    @patch("predictionmodel.views.save_prediction_input")
+    def test_post_with_save_session_error(
+        self,
+        create_prediction_session_mock,
         save_prediction_input_mock,
     ):
         resp = self.client.post(
@@ -150,7 +187,7 @@ class TestPredictionModelPrepareView(TestCase):
 
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), constants.ERROR_PREDICTION_MODEL_FAILED)
+        self.assertEqual(str(messages[0]), constants.ERROR_INPUT_DATA_SAVE_FAILED)
 
     @patch("predictionmodel.views.run_model_container")
     @patch(
@@ -210,7 +247,9 @@ class TestHelperFunctions(TestCase):
         prediction_session = PredictionModelSession.objects.create(
             secret_token=uuid.uuid4(), network_port=1001, user=None
         )
-        save_prediction_input(post_data, prediction_session)
+        save_prediction_input(
+            post_data, post_data.get("selected_model_uri"), prediction_session
+        )
 
         parent_input = PredictionModelData.objects.filter(
             code=TEST_MODEL_INPUT_PARAMETERS.fhir_code

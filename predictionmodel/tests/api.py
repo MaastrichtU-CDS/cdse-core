@@ -1,19 +1,24 @@
 import json
 import uuid
+from unittest.mock import patch
 
 import responses
-from django.test import TestCase, Client
+from django.test import TransactionTestCase, Client
 from django.urls import reverse
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_403_FORBIDDEN,
 )
 
-from .constants import TEST_INPUT_PAYLOAD, TEST_RESULT_PAYLOAD
+from .constants import (
+    TEST_INPUT_PAYLOAD,
+    TEST_RESULT_PAYLOAD,
+    TEST_MODEL_OUTPUT_PARAMETERS,
+)
 from ..models import PredictionModelSession, PredictionModelData
 
 
-class TestPredictionApi(TestCase):
+class TestPredictionApi(TransactionTestCase):
     client = None
     uuid = None
 
@@ -27,14 +32,14 @@ class TestPredictionApi(TestCase):
         model_input_data_child = PredictionModelData.objects.create(
             system="ncit",
             code="002",
-            input_parameter="two",
+            input_parameter="cT1",
             child_parameter=None,
         )
 
         PredictionModelData.objects.create(
             system="ncit",
             code="001",
-            input_parameter="one",
+            input_parameter="Clinical_T",
             child_parameter=model_input_data_child,
             session=prediction_session,
         )
@@ -54,7 +59,11 @@ class TestPredictionApi(TestCase):
         self.assertEqual(client_response.status_code, HTTP_403_FORBIDDEN)
 
     @responses.activate
-    def test_result_api(self):
+    @patch(
+        "predictionmodel.api.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_result_api(self, get_model_output_data_mock):
         headers = {"HTTP_AUTHORIZATION": str(self.uuid)}
 
         response = self.client.post(

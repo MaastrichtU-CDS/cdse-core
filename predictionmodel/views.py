@@ -131,33 +131,24 @@ class PrepareModelWizard(TemplateView):
             if fhir_endpoint_id == "" or fhir_endpoint_id is None:
                 raise InvalidInputException("fhir_endpoint_id")
 
-            docker_execution_data = get_model_execution_data(selected_model_uri)
-            container_props = prepare_container_properties(
-                docker_execution_data.get("image_name").get("value"),
-                docker_execution_data.get("image_id").get("value"),
+            prediction_session, container_properties = create_prediction_session(
+                selected_model_uri, patient_id, fhir_endpoint_id, request.user
             )
 
-            try:
-                prediction_session = PredictionModelSession.objects.create(
-                    patient_id=patient_id,
-                    data_source=FhirEndpoint.objects.get(id=fhir_endpoint_id),
-                    secret_token=container_props.get("secret_token"),
-                    network_port=container_props.get("port"),
-                    image_name=container_props.get("image_name"),
-                    image_id=container_props.get("image_id"),
-                    model_uri=selected_model_uri,
-                    user=request.user,
-                )
-            except Exception:
-                raise CannotSaveModelInputException()
+            save_prediction_input(request.POST, selected_model_uri, prediction_session)
 
-            save_prediction_input(request.POST, prediction_session)
-            run_model_container(*container_props.values())
+            run_model_container(
+                prediction_session.image_name,
+                prediction_session.image_id,
+                prediction_session.network_port,
+                prediction_session.secret_token,
+                container_properties.get("invocation_url"),
+            )
 
             return redirect(
                 reverse("prediction_loading")
                 + "?session_token="
-                + str(container_props.get("secret_token"))
+                + str(prediction_session.secret_token)
             )
 
         except DockerEngineFailedException:
@@ -216,8 +207,32 @@ def match_input_with_observations(input_parameters, observations_list):
     return input_parameters
 
 
-def save_prediction_input(post_data, prediction_session):
-    selected_model_uri = post_data["selected_model_uri"]
+def create_prediction_session(selected_model_uri, patient_id, fhir_endpoint_id, user):
+    docker_execution_data = get_model_execution_data(selected_model_uri)
+    container_props = prepare_container_properties(
+        docker_execution_data.get("image_name").get("value"),
+        docker_execution_data.get("image_id").get("value"),
+    )
+
+    try:
+        prediction_session = PredictionModelSession.objects.create(
+            patient_id=patient_id,
+            data_source=FhirEndpoint.objects.get(id=fhir_endpoint_id),
+            secret_token=container_props.get("secret_token"),
+            network_port=container_props.get("port"),
+            image_name=container_props.get("image_name"),
+            image_id=container_props.get("image_id"),
+            model_uri=selected_model_uri,
+            user=user,
+        )
+
+        return prediction_session, container_props
+
+    except Exception:
+        raise CannotSaveModelInputException()
+
+
+def save_prediction_input(post_data, selected_model_uri, prediction_session):
     model_input_list = get_model_input_data(selected_model_uri)
 
     for parent_model_input in model_input_list:
