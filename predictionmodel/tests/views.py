@@ -1,5 +1,5 @@
 import uuid
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from django.contrib.auth.models import User
 from django.test import TestCase, Client, TransactionTestCase
@@ -124,7 +124,8 @@ class TestPredictionModelPrepareView(TransactionTestCase):
             status_code=200,
         )
 
-    def test_post_with_no_model_selection(self):
+    @patch("predictionmodel.views.get_all_models", return_value=[])
+    def test_post_with_no_model_selection(self, get_all_models_mock):
         resp = self.client.post(
             reverse("prediction_prepare"),
             data={"selected_model_uri": "", "action": "start_prediction"},
@@ -141,13 +142,18 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         "predictionmodel.views.run_model_container",
         side_effect=DockerEngineFailedException(),
     )
-    @patch("predictionmodel.views.create_prediction_session")
+    @patch(
+        "predictionmodel.views.create_prediction_session",
+        return_value=[MagicMock(), MagicMock()],
+    )
     @patch("predictionmodel.views.save_prediction_input")
+    @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_docker_error(
         self,
         run_model_container_mock,
         create_prediction_session_mock,
         save_prediction_input_mock,
+        get_all_models_mock,
     ):
         create_prediction_session_mock.return_value = [
             TEST_SESSION,
@@ -175,10 +181,12 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         side_effect=CannotSaveModelInputException(),
     )
     @patch("predictionmodel.views.save_prediction_input")
+    @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_save_session_error(
         self,
         create_prediction_session_mock,
         save_prediction_input_mock,
+        get_all_models_mock,
     ):
         resp = self.client.post(
             reverse("prediction_prepare"),
@@ -202,8 +210,12 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         "predictionmodel.views.get_model_execution_data",
         side_effect=SparqlQueryFailedException(),
     )
+    @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_model_execution_data_error(
-        self, run_model_container_mock, get_model_execution_data_mock
+        self,
+        run_model_container_mock,
+        get_model_execution_data_mock,
+        get_all_models_mock,
     ):
         resp = self.client.post(
             reverse("prediction_prepare"),
