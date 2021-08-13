@@ -20,7 +20,9 @@ def run_model_container(image_name, image_id, port, secret_token, invocation_url
                 "PORT=" + str(port),
                 "INVOCATION_HOST=" + invocation_url,
                 "SECRET_TOKEN=" + str(secret_token),
-                "TEMPLATE_DIR=template" "STATIC_DIR=static" "DEBUG=False",
+                "TEMPLATE_DIR=template",
+                "STATIC_DIR=static",
+                "DEBUG=False",
                 "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0",
             ],
         )

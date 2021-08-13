@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 from django.contrib import messages
@@ -313,6 +314,8 @@ class ResultWizard(TemplateView):
             context["output_data_list"] = output_data_list
             context["parent_results"] = parent_results
             context["child_results"] = child_results
+            context["prediction_session"] = prediction_session
+            context["invocation_host"] = os.environ.get("INVOCATION_HOST", "localhost")
 
         except (ObjectDoesNotExist, InvalidSessionTokenException):
             messages.add_message(

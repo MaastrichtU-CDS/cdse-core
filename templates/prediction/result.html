@@ -36,9 +36,21 @@
   {% endfor %}
 
 
-<!--  <iframe src="http://127.0.0.1:{{prediction_session.network_port}}"></iframe>-->
-  <a href="/prediction/start" class="next-button">Restart</a>
 </div>
+    <a href="#" id="show-advanced" class="next-button">Show / hide advanced view</a>
+    <br>
+    <iframe class="not-visible"  id="advanced-view"
+            src="http://{{invocation_host}}:{{prediction_session.network_port}}/?invocation_host=http://{{invocation_host}}&invocation_port={{prediction_session.network_port}}&session_token={{prediction_session.secret_token}}" frameborder="0" scrolling="no"></iframe>
+    <br>
+      <a href="/prediction/start" class="next-button">Restart</a>
 </div>
+
+<script type="text/javascript">
+         $("#show-advanced").click( function()
+           {
+             $("#advanced-view").toggleClass("not-visible");
+           }
+        );
+</script>
 
 {% endblock content %}
