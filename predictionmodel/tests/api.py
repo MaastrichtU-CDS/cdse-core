@@ -122,7 +122,9 @@ class TestPredictionApi(TransactionTestCase):
         response = self.client.get(reverse("check_result"), **headers)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.json(), False)
+        self.assertEqual(
+            response.json(), {"calculation_complete": False, "error": None}
+        )
 
     @responses.activate
     def test_check_calculation_complete(self):
@@ -134,7 +136,7 @@ class TestPredictionApi(TransactionTestCase):
         response = self.client.get(reverse("check_result"), **headers)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.json(), True)
+        self.assertEqual(response.json(), {"calculation_complete": True, "error": None})
 
     @responses.activate
     def test_check_calculation_wrong_token(self):

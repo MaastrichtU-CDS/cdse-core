@@ -32,9 +32,12 @@ var params = new window.URLSearchParams(window.location.search);
         url: "{% url 'check_result' %}",
         type: "GET",
         success: function(result) {
-            if(result){
+            if(result.calculation_complete && !result.error){
                window.location.replace("{% url 'prediction_result' %}" + "?session_token=" + params.get
                ('session_token'));
+            }
+            if(!!result.error) {
+            error();
             }
         },
         dataType: "json",
@@ -53,8 +56,6 @@ function error() {
   $(".loader").addClass("not-visible");
   $( ".loading-text" ).last().html( "{{ error_message }}" );
 }
-
-setTimeout(function() { error(); }, {{ time_out_milliseconds }});
 
 </script>
 {% endblock content %}

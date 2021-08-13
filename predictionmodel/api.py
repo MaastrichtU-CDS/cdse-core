@@ -4,6 +4,7 @@ from django.urls import path
 
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 from predictionmodel.exceptions import (
@@ -64,12 +65,35 @@ def post_model_result(request):
 
     except Exception:
         CannotProcessModelOutputException()
+        prediction_session.error = CannotProcessModelOutputException.default_detail
+        prediction_session.save()
 
 
 @api_view(["GET"])
 def check_calculation_complete(request):
     prediction_session = _get_prediction_session(request)
-    return Response(data=prediction_session.calculation_complete)
+    return Response(
+        data={
+            "calculation_complete": prediction_session.calculation_complete,
+            "error": prediction_session.error,
+        }
+    )
+
+
+@api_view(["POST"])
+def post_calculation_error(request):
+    prediction_session = _get_prediction_session(request)
+
+    try:
+        body_unicode = request.body.decode("utf-8")
+        body = json.loads(body_unicode)
+        print(body)
+        error_message = body.get("error_message", "")
+        prediction_session.error = error_message
+        prediction_session.save()
+        return Response(status=status.HTTP_200_OK)
+    except Exception:
+        APIException()
 
 
 def _get_prediction_session(request):
@@ -91,4 +115,5 @@ urlpatterns = [
     path("ready", get_model_input, name="get_model_input"),
     path("result", post_model_result, name="post_result"),
     path("check", check_calculation_complete, name="check_result"),
+    path("error", post_calculation_error, name="calculation_error"),
 ]

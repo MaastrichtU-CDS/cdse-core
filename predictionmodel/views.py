@@ -277,7 +277,6 @@ class LoadingWizard(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["time_out_milliseconds"] = 8000
         context["error_message"] = ERROR_PREDICTION_CALCULATION_TIME_OUT
         return context
 

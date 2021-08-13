@@ -252,7 +252,6 @@ class TestPredictionModelLoadingView(TransactionTestCase):
         self.assertEqual(
             resp.context["error_message"], ERROR_PREDICTION_CALCULATION_TIME_OUT
         )
-        self.assertEqual(resp.context["time_out_milliseconds"], 8000)
         self.assertContains(
             resp, """<h1 class="loading-text">Please wait...</h1>""", status_code=200
         )
