@@ -1,17 +1,37 @@
 import json
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import path
 
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from predictionmodel import tests
+from predictionmodel.models import PredictionModelSession
 
 
 @api_view(["GET"])
 def get_model_input(request):
-    # Currently return test payload, next story this will be user selected input.
-    return Response(tests.TEST_INPUT_PAYLOAD)
+    secret_token = request.META.get("HTTP_AUTHORIZATION", "")
+
+    try:
+        if secret_token == "" or secret_token is None:
+            raise ObjectDoesNotExist()
+
+        prediction_session = PredictionModelSession.objects.get(
+            secret_token=secret_token
+        )
+
+        payload = {}
+        for model_input in prediction_session.predictionmodeldata_set.all():
+            payload[
+                model_input.input_parameter
+            ] = model_input.child_parameter.input_parameter
+
+        return Response(payload)
+
+    except ObjectDoesNotExist:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(["POST"])

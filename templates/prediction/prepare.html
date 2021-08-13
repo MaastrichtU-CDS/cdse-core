@@ -3,22 +3,69 @@
 {% block content %}
 
 <div class="wizard-main">
-<h1>Prediction Model Prepare</h1>
+    <h1>Prediction Model Prepare</h1>
 
-<form action="{% url 'prediction_prepare' %}" method="post">
+    <form action="{% url 'prediction_prepare' %}" method="post">
 
-{% csrf_token %}
-<input type="hidden" id="fhir_endpoint" name="fhir_endpoint" value="{{fhir_endpoint|default_if_none:''}}">
-<input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
-<input type="hidden" id="selected_model_uri" name="selected_model_uri" value="{{selected_model_uri|default_if_none:''}}">
+        {% csrf_token %}
+        <input type="hidden" id="fhir_endpoint" name="fhir_endpoint" value="{{fhir_endpoint|default_if_none:''}}">
+        <input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
+        <input type="hidden" id="selected_model_uri" name="selected_model_uri"
+               value="{{selected_model_uri|default_if_none:''}}">
 
-<p><strong>Selected fhir ID: {{fhir_endpoint}}</strong></p>
-<p><strong>Selected patient ID: {{patient_id}}</strong></p>
-<p><strong>Selected model URI: {{selected_model_uri}}</strong></p>
+        <div class="selected-patient-box">
+            <div class="padding">
+                <h2>Selected patient</h2>
+                <p>Name: {{patient_information.name}}</p>
+                <p>Birthdate: {{patient_information.birthdate}}</p>
+            </div>
+        </div>
 
- <button type="submit" name='action' value="start_prediction" class="next-button">Start</button>
- </form>
-<br>
- <a href="/prediction/start" class="next-button">Back</a>
- </div>
+        <table class="parameter-table">
+            <thead>
+            <tr>
+                <th>Model input</th>
+                <th>Found values</th>
+                <th>Manual override</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for input_item in model_input_list %}
+            <tr>
+                <td>{% if input_item.description is not None %}{{input_item.description}}{% else %}{{input_item.fhir_code}}{% endif %}</td>
+                <td>{% if input_item.matched_child is not None %}{% if input_item.matched_child.description is not None %}{{input_item.matched_child.description}}{% else %}{{input_item.matched_child.fhir_code}}{% endif %}{% endif %}</td>
+                <td>
+                    <select name="{{input_item.fhir_code}}-override" id="{{input_item.fhir_code}}-override">
+                        <option value="">---------</option>
+                        {% for child in input_item.children %}
+                        <option value="{{ child.fhir_code }}">{% if child.description is not None %}{{child.description}}{% else %}{{child.fhir_code}}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td id="reset-{{input_item.fhir_code}}" class="text-underline cursor-pointer">Reset</td>
+            </tr>
+
+            <input type="hidden" id="{{input_item.fhir_code}}" name="{{input_item.fhir_code}}"
+                   value="{{input_item.matched_child.fhir_code|default_if_none:''}}">
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" name='action' value="start_prediction" class="next-button">Start</button>
+    </form>
+    <br>
+    <a href="/prediction/start" class="next-button">Back</a>
+</div>
+
+<script type="text/javascript">
+{% for input_item in model_input_list %}
+document.getElementById('reset-{{input_item.fhir_code}}').onclick=function(){
+    var {{input_item.fhir_code}} = document.querySelectorAll('#{{input_item.fhir_code}}-override option');
+for (var i = 0, l = {{input_item.fhir_code}}.length; i < l; i++) {
+    {{input_item.fhir_code}}[i].selected = {{input_item.fhir_code}}[i].defaultSelected;
+}}
+{% endfor %}
+
+</script>
 {% endblock content %}

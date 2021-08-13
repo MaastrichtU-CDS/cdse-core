@@ -12,14 +12,20 @@ from dockerfacade.container import (
 )
 from dockerfacade.exceptions import DockerEngineFailedException
 from fhir.exceptions import FhirEndpointFailedException
+from fhir.client import Client as FhirClient
 from predictionmodel import constants
 from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
+    CannotSaveModelInputException,
 )
-from predictionmodel.models import PredictionModelSession
+from predictionmodel.models import PredictionModelSession, PredictionModelData
 from sparql.exceptions import SparqlQueryFailedException
-from sparql.query import get_all_models, get_model_execution_data
+from sparql.query import (
+    get_all_models,
+    get_model_execution_data,
+    get_model_input_data,
+)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -63,6 +69,22 @@ class PrepareModelWizard(TemplateView):
                 if fhir_endpoint_id is None:
                     raise InvalidInputException("fhir_endpoint_id")
 
+            fhir_endpoint_url = FhirEndpoint.get_full_url_by_id(fhir_endpoint_id)
+
+            context["patient_information"] = FhirClient(
+                fhir_endpoint_url
+            ).get_patient_name_and_birthdate(patient_id)
+
+            patient_observations = FhirClient(
+                fhir_endpoint_url
+            ).get_patient_observations(patient_id)
+
+            model_input_list = get_model_input_data(selected_model_uri)
+
+            context["model_input_list"] = match_input_with_observations(
+                model_input_list, patient_observations
+            )
+
         except InvalidInputException as ex:
             messages.add_message(
                 self.request,
@@ -92,16 +114,19 @@ class PrepareModelWizard(TemplateView):
         try:
             if selected_model_uri == "" or selected_model_uri is None:
                 raise NoPredictionModelSelectedException()
+
             docker_execution_data = get_model_execution_data(selected_model_uri)
             container_props = prepare_container_properties(
                 docker_execution_data.get("image_name").get("value"),
                 docker_execution_data.get("image_id").get("value"),
             )
-            PredictionModelSession.objects.create(
+            prediction_session = PredictionModelSession.objects.create(
                 secret_token=container_props.get("secret_token"),
                 network_port=container_props.get("port"),
                 user=request.user,
             )
+
+            save_prediction_input(request.POST, prediction_session)
             run_model_container(*container_props.values())
         except DockerEngineFailedException:
             messages.add_message(
@@ -117,6 +142,10 @@ class PrepareModelWizard(TemplateView):
             messages.add_message(
                 request, messages.ERROR, constants.NO_PREDICTION_MODEL_SELECTED
             )
+        except CannotSaveModelInputException:
+            messages.add_message(
+                request, messages.ERROR, constants.ERROR_INPUT_DATA_SAVE_FAILED
+            )
         except Exception:
             messages.add_message(
                 request,
@@ -125,3 +154,63 @@ class PrepareModelWizard(TemplateView):
             )
 
         return HttpResponseRedirect("/admin")
+
+
+def match_input_with_observations(input_parameters, observations_list):
+    for input_item in input_parameters:
+        for observation_item in observations_list:
+            if (
+                observation_item.valueCodeableConcept is not None
+                and observation_item.code is not None
+            ):
+                if (
+                    observation_item.code.coding[0].system
+                    == input_item.fhir_code_system
+                    and observation_item.code.coding[0].code == input_item.fhir_code
+                ):
+                    for child in input_item.children:
+                        if (
+                            observation_item.valueCodeableConcept.coding[0].system
+                            == child.fhir_code_system
+                            and observation_item.valueCodeableConcept.coding[0].code
+                            == child.fhir_code
+                        ):
+                            input_item.matched_child = child
+    return input_parameters
+
+
+def save_prediction_input(post_data, prediction_session):
+    selected_model_uri = post_data["selected_model_uri"]
+    model_input_list = get_model_input_data(selected_model_uri)
+
+    for parent_model_input in model_input_list:
+        try:
+            fhir_code_child = post_data.get(parent_model_input.fhir_code, "")
+            fhir_code_child_override = post_data.get(
+                parent_model_input.fhir_code + "-override", ""
+            )
+
+            if fhir_code_child_override != "":
+                fhir_code_child = fhir_code_child_override
+
+            if fhir_code_child == "":
+                pass
+
+            child = parent_model_input.get_child_by_code(fhir_code_child)
+
+            model_input_data_child = PredictionModelData.objects.create(
+                system=child.fhir_code_system,
+                code=child.fhir_code,
+                input_parameter=child.parameter,
+                child_parameter=None,
+            )
+
+            PredictionModelData.objects.create(
+                system=parent_model_input.fhir_code_system,
+                code=parent_model_input.fhir_code,
+                input_parameter=parent_model_input.parameter,
+                child_parameter=model_input_data_child,
+                session=prediction_session,
+            )
+        except Exception:
+            raise CannotSaveModelInputException()

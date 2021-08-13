@@ -7,3 +7,7 @@ class InvalidInputException(Exception):
 
 class NoPredictionModelSelectedException(Exception):
     """Indicating the required model uri is missing."""
+
+
+class CannotSaveModelInputException(Exception):
+    """Indicating some model inputs cannot be saved of linked to a session."""
