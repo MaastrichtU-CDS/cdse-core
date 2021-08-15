@@ -2,9 +2,13 @@
 
 {% block content %}
 <div class="wizard-main">
+  {% if prediction_session.error is None or prediction_session.error == "" %}
   <div class="loader"></div>
   <br>
   <h1 class="loading-text">Please wait...</h1>
+  {% else %}
+  <h1>{{ error_message }}</h1>
+  {% endif %}
   <a href="/prediction/start" class="next-button not-visible">Restart</a>
 </div>
 

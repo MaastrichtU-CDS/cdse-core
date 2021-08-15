@@ -17,7 +17,7 @@ from dockerfacade.exceptions import DockerEngineFailedException
 from fhir.exceptions import FhirEndpointFailedException
 from fhir.client import Client as FhirClient
 from predictionmodel import constants
-from predictionmodel.constants import ERROR_PREDICTION_CALCULATION_TIME_OUT
+from predictionmodel.constants import ERROR_PREDICTION_CALCULATION
 from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
@@ -277,7 +277,21 @@ class LoadingWizard(TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["error_message"] = ERROR_PREDICTION_CALCULATION_TIME_OUT
+        secret_token = self.request.GET.get("session_token", "")
+
+        try:
+            context["prediction_session"] = _get_prediction_session(secret_token)
+            context["error_message"] = ERROR_PREDICTION_CALCULATION
+
+        except InvalidSessionTokenException:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_PROVIDED_SESSION_TOKEN_INVALID,
+            )
+        except Exception:
+            messages.add_message(self.request, messages.ERROR, constants.ERROR_UNKNOWN)
+
         return context
 
 
@@ -290,12 +304,7 @@ class ResultWizard(TemplateView):
         secret_token = self.request.GET.get("session_token", "")
 
         try:
-            if secret_token == "" or secret_token is None:
-                raise InvalidSessionTokenException()
-
-            prediction_session = PredictionModelSession.objects.get(
-                secret_token=secret_token
-            )
+            prediction_session = _get_prediction_session(secret_token)
 
             output_data_list = get_model_output_data(prediction_session.model_uri)
             parent_results = prediction_session.predictionmodelresult_set.filter(
@@ -327,3 +336,10 @@ class ResultWizard(TemplateView):
             messages.add_message(self.request, messages.ERROR, constants.ERROR_UNKNOWN)
 
         return context
+
+
+def _get_prediction_session(secret_token):
+    if secret_token == "" or secret_token is None:
+        raise InvalidSessionTokenException()
+
+    return PredictionModelSession.objects.get(secret_token=secret_token)

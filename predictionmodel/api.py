@@ -87,7 +87,6 @@ def post_calculation_error(request):
     try:
         body_unicode = request.body.decode("utf-8")
         body = json.loads(body_unicode)
-        print(body)
         error_message = body.get("error_message", "")
         prediction_session.error = error_message
         prediction_session.save()
