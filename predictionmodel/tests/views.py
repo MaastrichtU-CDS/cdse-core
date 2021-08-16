@@ -2,7 +2,7 @@ import uuid
 from unittest.mock import patch, MagicMock
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, TransactionTestCase
+from django.test import TestCase, Client, TransactionTestCase, tag
 
 from django.urls import reverse
 from fhirclient.models.observation import Observation
@@ -28,7 +28,7 @@ from .constants import (
     TEST_MODEL_OUTPUT_CHILD_PARAMETER,
     TEST_DOCKER_EXECUTION_DATA,
 )
-from ..constants import ERROR_PREDICTION_CALCULATION
+from ..constants import ERROR_PREDICTION_CALCULATION, WARNING_SESSION_ENDED
 from ..exceptions import CannotSaveModelInputException
 from ..models import PredictionModelSession, PredictionModelData, PredictionModelResult
 
@@ -327,6 +327,54 @@ class TestPredictionModelResultView(TransactionTestCase):
         self.assertContains(resp, """<td>T0 Stage Finding</td>""", status_code=200)
         self.assertContains(resp, """<td>0.1</td>""", status_code=200)
         self.assertTemplateUsed(resp, "prediction/result.html")
+
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_results_without_advanced_view(self, get_model_output_data_mock):
+        self.prediction_session.advanced_view = False
+        self.prediction_session.save()
+
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertNotContains(resp, """iframe""", status_code=200)
+        self.assertNotContains(resp, WARNING_SESSION_ENDED, status_code=200)
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_results_with_advanced_view(self, get_model_output_data_mock):
+        self.prediction_session.container_id = "123"
+        self.prediction_session.advanced_view = True
+        self.prediction_session.save()
+
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertContains(resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200)
+        self.assertNotContains(resp, WARNING_SESSION_ENDED, status_code=200)
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_results_ended_advanced_view(self, get_model_output_data_mock):
+        self.prediction_session.container_id = None
+        self.prediction_session.advanced_view = True
+        self.prediction_session.save()
+
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertNotContains(resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200)
+        self.assertContains(resp, WARNING_SESSION_ENDED, status_code=200)
 
     def test_get_result_view_wrong_token(self):
         resp = self.client.get(reverse("prediction_result"))
