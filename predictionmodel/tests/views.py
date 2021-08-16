@@ -257,7 +257,7 @@ class TestPredictionModelLoadingView(TransactionTestCase):
 
         self.assertEqual(resp.context["error_message"], ERROR_PREDICTION_CALCULATION)
         self.assertContains(
-            resp, """<h1 class="loading-text">Please wait...</h1>""", status_code=200
+            resp, """<h1 class="loading-text" id="loader">Please wait...</h1>""", status_code=200
         )
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, "prediction/loading.html")
