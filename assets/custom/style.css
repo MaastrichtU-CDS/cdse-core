@@ -32,7 +32,7 @@ select {
 	padding: 10px 32px;
 	text-align: center;
 	display: block;
-	margin: auto;
+	margin: 10px auto;
 	text-decoration: none;
 	font-size: 16px;
 	cursor: pointer;
@@ -124,7 +124,7 @@ a.next-button {
 }
 
 .not-visible {
-  display: none;
+  visibility:hidden;
 }
 
 .red-bg {

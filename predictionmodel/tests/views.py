@@ -139,7 +139,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         self.assertEqual(str(messages[0]), constants.NO_PREDICTION_MODEL_SELECTED)
 
     @patch(
-        "predictionmodel.views.run_model_container",
+        "predictionmodel.views.run_container",
         side_effect=DockerEngineFailedException(),
     )
     @patch(
@@ -150,7 +150,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
     @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_docker_error(
         self,
-        run_model_container_mock,
+        run_container_mock,
         create_prediction_session_mock,
         save_prediction_input_mock,
         get_all_models_mock,
@@ -205,7 +205,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), constants.ERROR_INPUT_DATA_SAVE_FAILED)
 
-    @patch("predictionmodel.views.run_model_container")
+    @patch("predictionmodel.views.run_container")
     @patch(
         "predictionmodel.views.get_model_execution_data",
         side_effect=SparqlQueryFailedException(),
@@ -213,7 +213,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
     @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_model_execution_data_error(
         self,
-        run_model_container_mock,
+        run_container_mock,
         get_model_execution_data_mock,
         get_all_models_mock,
     ):

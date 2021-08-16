@@ -37,12 +37,15 @@
 
 
 </div>
+
+    <a href="/prediction/start" class="next-button">Restart</a>
+    {% if prediction_session.container_id is not None and prediction_session.container_id != "" %}
     <a href="#" id="show-advanced" class="next-button">Show / hide advanced view</a>
-    <br>
     <iframe class="not-visible"  id="advanced-view"
             src="http://{{invocation_host}}:{{prediction_session.network_port}}/?invocation_host=http://{{invocation_host}}&invocation_port={{prediction_session.network_port}}&session_token={{prediction_session.secret_token}}" frameborder="0" scrolling="no"></iframe>
-    <br>
-      <a href="/prediction/start" class="next-button">Restart</a>
+    {% else %}
+    <h3>{{ warning_session_ended }}</h3>
+    {% endif %}
 </div>
 
 <script type="text/javascript">
