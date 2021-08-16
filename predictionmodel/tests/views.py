@@ -328,7 +328,6 @@ class TestPredictionModelResultView(TransactionTestCase):
         self.assertContains(resp, """<td>0.1</td>""", status_code=200)
         self.assertTemplateUsed(resp, "prediction/result.html")
 
-
     @patch(
         "predictionmodel.views.get_model_output_data",
         return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
@@ -357,7 +356,9 @@ class TestPredictionModelResultView(TransactionTestCase):
             reverse("prediction_result") + "?session_token=" + str(self.uuid)
         )
 
-        self.assertContains(resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200)
+        self.assertContains(
+            resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200
+        )
         self.assertNotContains(resp, WARNING_SESSION_ENDED, status_code=200)
 
     @patch(
@@ -373,7 +374,9 @@ class TestPredictionModelResultView(TransactionTestCase):
             reverse("prediction_result") + "?session_token=" + str(self.uuid)
         )
 
-        self.assertNotContains(resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200)
+        self.assertNotContains(
+            resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200
+        )
         self.assertContains(resp, WARNING_SESSION_ENDED, status_code=200)
 
     def test_get_result_view_wrong_token(self):
