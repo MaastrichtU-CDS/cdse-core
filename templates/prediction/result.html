@@ -1,9 +1,9 @@
 {% extends "admin/base.html" %}
-
+{% block title %}Prediction - Result{% endblock %}
 {% block content %}
 <div class="wizard-main">
   <h1>Prediction Results</h1>
-<div class="mid">
+<div class="mid" id="result">
   {% for parent_item in parent_results %}
 
   {% for output_data in output_data_list %}
