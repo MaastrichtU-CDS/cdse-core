@@ -38,7 +38,7 @@
 
 </div>
 
-    <a href="/prediction/start" class="next-button">Restart</a>
+    <a href="{% url 'prediction_start' %}" class="next-button">Restart</a>
     {% if prediction_session.container_id is not None and prediction_session.container_id != "" and prediction_session.advanced_view %}
     <a href="#" id="show-advanced" class="next-button">Show / hide advanced view</a>
     <iframe class="not-visible"  id="advanced-view"
