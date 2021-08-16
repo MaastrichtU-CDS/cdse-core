@@ -18,6 +18,7 @@ class PredictionModelSession(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     data_source = models.ForeignKey(FhirEndpoint, on_delete=models.SET_NULL, null=True)
     calculation_complete = models.BooleanField(default=False, null=False)
+    advanced_view = models.BooleanField(default=False, null=False)
     error = models.TextField(null=True, default=None)
 
 
