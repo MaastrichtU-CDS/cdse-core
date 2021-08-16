@@ -2,7 +2,7 @@ import uuid
 from unittest.mock import patch, MagicMock
 
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, TransactionTestCase, tag
+from django.test import TestCase, Client, TransactionTestCase
 
 from django.urls import reverse
 from fhirclient.models.observation import Observation
