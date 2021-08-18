@@ -1,8 +1,11 @@
+import os
 from typing import Any, Dict
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from datasource.models import FhirEndpoint
@@ -14,17 +17,24 @@ from dockerfacade.exceptions import DockerEngineFailedException
 from fhir.exceptions import FhirEndpointFailedException
 from fhir.client import Client as FhirClient
 from predictionmodel import constants
+from predictionmodel.constants import ERROR_PREDICTION_CALCULATION_TIME_OUT
 from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
     CannotSaveModelInputException,
+    InvalidSessionTokenException,
 )
-from predictionmodel.models import PredictionModelSession, PredictionModelData
+from predictionmodel.models import (
+    PredictionModelSession,
+    PredictionModelData,
+    PredictionModelResult,
+)
 from sparql.exceptions import SparqlQueryFailedException
 from sparql.query import (
     get_all_models,
     get_model_execution_data,
     get_model_input_data,
+    get_model_output_data,
 )
 
 
@@ -53,9 +63,9 @@ class PrepareModelWizard(TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        fhir_endpoint_id = self.request.GET.get("fhir_endpoint_id")
-        patient_id = self.request.GET.get("patient_id")
-        selected_model_uri = self.request.GET.get("selected_model_uri")
+        fhir_endpoint_id = self.request.GET.get("fhir_endpoint_id", None)
+        patient_id = self.request.GET.get("patient_id", None)
+        selected_model_uri = self.request.GET.get("selected_model_uri", None)
 
         try:
             if patient_id == "" or patient_id is None:
@@ -105,29 +115,45 @@ class PrepareModelWizard(TemplateView):
             )
 
         context["selected_model_uri"] = selected_model_uri
+        context["patient_id"] = patient_id
+        context["fhir_endpoint_id"] = fhir_endpoint_id
         return context
 
-    @staticmethod
-    def post(request):
-        selected_model_uri = request.POST["selected_model_uri"]
+    def post(self, request):
+        selected_model_uri = request.POST.get("selected_model_uri", None)
+        fhir_endpoint_id = request.POST.get("fhir_endpoint_id", None)
+        patient_id = request.POST.get("patient_id", None)
 
         try:
             if selected_model_uri == "" or selected_model_uri is None:
                 raise NoPredictionModelSelectedException()
 
-            docker_execution_data = get_model_execution_data(selected_model_uri)
-            container_props = prepare_container_properties(
-                docker_execution_data.get("image_name").get("value"),
-                docker_execution_data.get("image_id").get("value"),
-            )
-            prediction_session = PredictionModelSession.objects.create(
-                secret_token=container_props.get("secret_token"),
-                network_port=container_props.get("port"),
-                user=request.user,
+            if patient_id == "" or patient_id is None:
+                raise InvalidInputException("patient_id")
+
+            if fhir_endpoint_id == "" or fhir_endpoint_id is None:
+                raise InvalidInputException("fhir_endpoint_id")
+
+            prediction_session, container_properties = create_prediction_session(
+                selected_model_uri, patient_id, fhir_endpoint_id, request.user
             )
 
-            save_prediction_input(request.POST, prediction_session)
-            run_model_container(*container_props.values())
+            save_prediction_input(request.POST, selected_model_uri, prediction_session)
+
+            run_model_container(
+                prediction_session.image_name,
+                prediction_session.image_id,
+                prediction_session.network_port,
+                prediction_session.secret_token,
+                container_properties.get("invocation_url"),
+            )
+
+            return redirect(
+                reverse("prediction_loading")
+                + "?session_token="
+                + str(prediction_session.secret_token)
+            )
+
         except DockerEngineFailedException:
             messages.add_message(
                 request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
@@ -146,14 +172,19 @@ class PrepareModelWizard(TemplateView):
             messages.add_message(
                 request, messages.ERROR, constants.ERROR_INPUT_DATA_SAVE_FAILED
             )
+        except InvalidInputException as ex:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_REQUIRED_INPUT_NOT_FOUND + ex.input_parameter,
+            )
         except Exception:
             messages.add_message(
                 request,
                 messages.ERROR,
                 constants.ERROR_UNKNOWN,
             )
-
-        return HttpResponseRedirect("/admin")
+        return redirect("prediction_start")
 
 
 def match_input_with_observations(input_parameters, observations_list):
@@ -179,8 +210,32 @@ def match_input_with_observations(input_parameters, observations_list):
     return input_parameters
 
 
-def save_prediction_input(post_data, prediction_session):
-    selected_model_uri = post_data["selected_model_uri"]
+def create_prediction_session(selected_model_uri, patient_id, fhir_endpoint_id, user):
+    docker_execution_data = get_model_execution_data(selected_model_uri)
+    container_props = prepare_container_properties(
+        docker_execution_data.get("image_name").get("value"),
+        docker_execution_data.get("image_id").get("value"),
+    )
+
+    try:
+        prediction_session = PredictionModelSession.objects.create(
+            patient_id=patient_id,
+            data_source=FhirEndpoint.objects.get(id=fhir_endpoint_id),
+            secret_token=container_props.get("secret_token"),
+            network_port=container_props.get("port"),
+            image_name=container_props.get("image_name"),
+            image_id=container_props.get("image_id"),
+            model_uri=selected_model_uri,
+            user=user,
+        )
+
+        return prediction_session, container_props
+
+    except Exception:
+        raise CannotSaveModelInputException()
+
+
+def save_prediction_input(post_data, selected_model_uri, prediction_session):
     model_input_list = get_model_input_data(selected_model_uri)
 
     for parent_model_input in model_input_list:
@@ -214,3 +269,62 @@ def save_prediction_input(post_data, prediction_session):
             )
         except Exception:
             raise CannotSaveModelInputException()
+
+
+@method_decorator(login_required, name="dispatch")
+class LoadingWizard(TemplateView):
+    template_name = "prediction/loading.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["time_out_milliseconds"] = 8000
+        context["error_message"] = ERROR_PREDICTION_CALCULATION_TIME_OUT
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class ResultWizard(TemplateView):
+    template_name = "prediction/result.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        secret_token = self.request.GET.get("session_token", "")
+
+        try:
+            if secret_token == "" or secret_token is None:
+                raise InvalidSessionTokenException()
+
+            prediction_session = PredictionModelSession.objects.get(
+                secret_token=secret_token
+            )
+
+            output_data_list = get_model_output_data(prediction_session.model_uri)
+            parent_results = prediction_session.predictionmodelresult_set.filter(
+                parent_parameter__isnull=True
+            )
+
+            child_results = []
+            for parent_item in parent_results:
+                child_list = PredictionModelResult.objects.filter(
+                    parent_parameter=parent_item
+                )
+                for child in child_list:
+                    child_results.append(child)
+
+            context["output_data_list"] = output_data_list
+            context["parent_results"] = parent_results
+            context["child_results"] = child_results
+            context["prediction_session"] = prediction_session
+            context["invocation_host"] = os.environ.get("INVOCATION_HOST", "localhost")
+
+        except (ObjectDoesNotExist, InvalidSessionTokenException):
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                constants.ERROR_PROVIDED_SESSION_TOKEN_INVALID,
+            )
+
+        except Exception:
+            messages.add_message(self.request, messages.ERROR, constants.ERROR_UNKNOWN)
+
+        return context

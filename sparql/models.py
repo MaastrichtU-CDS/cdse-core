@@ -1,4 +1,4 @@
-class ModelInput:
+class ModelData:
     def __init__(
         self,
         fhir_code,

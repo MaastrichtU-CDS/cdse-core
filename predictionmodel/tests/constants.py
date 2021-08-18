@@ -1,4 +1,7 @@
-from sparql.models import ModelInput
+import uuid
+
+from predictionmodel.models import PredictionModelSession
+from sparql.models import ModelData
 
 FOUND_MODEL_LIST = [
     {
@@ -10,11 +13,16 @@ FOUND_MODEL_LIST = [
     }
 ]
 
-TEST_INPUT_PAYLOAD = {"one": "two"}
+TEST_INPUT_PAYLOAD = {"Clinical_T": "cT1"}
 
-TEST_RESULT_PAYLOAD = {"testx": 1, "has_result_page": True}
+TEST_RESULT_PAYLOAD = {
+    "Pathological_T": {
+        "ypT0": 0.1,
+    },
+    "has_result_page": False,
+}
 
-TEST_MODEL_INPUT_CHILD_PARAMETER = ModelInput(
+TEST_MODEL_INPUT_CHILD_PARAMETER = ModelData(
     "C48720",
     "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
     "cT1",
@@ -23,7 +31,7 @@ TEST_MODEL_INPUT_CHILD_PARAMETER = ModelInput(
     None,
 )
 
-TEST_MODEL_INPUT_PARAMETERS = ModelInput(
+TEST_MODEL_INPUT_PARAMETERS = ModelData(
     "C48885",
     "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
     "Clinical_T",
@@ -32,6 +40,29 @@ TEST_MODEL_INPUT_PARAMETERS = ModelInput(
     None,
 )
 
+TEST_MODEL_OUTPUT_CHILD_PARAMETER = ModelData(
+    "C48719",
+    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+    "ypT0",
+    "T0 Stage Finding",
+    None,
+    None,
+)
+
+TEST_MODEL_OUTPUT_PARAMETERS = ModelData(
+    "C48888",
+    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+    "Pathological_T",
+    "Pathologic Primary Tumor TNM Finding",
+    [TEST_MODEL_OUTPUT_CHILD_PARAMETER],
+    None,
+)
+
+TEST_SESSION = PredictionModelSession(
+    image_name="test", image_id="123", network_port=12, secret_token=uuid.uuid4()
+)
+
+TEST_CONTAINER_PROPS = {"invocation_url": "http://test"}
 
 TEST_PATIENT = {"name": "James Doe", "birthdate": "01-01-1990"}
 
@@ -53,4 +84,19 @@ TEST_OBSERVATIONS = {
         ]
     },
     "status": "final",
+}
+
+TEST_DOCKER_EXECUTION_DATA = {
+    "image_name": {"type": "literal", "value": "lery/bn-test:latest"},
+    "model_label": {"type": "literal", "value": "Rectal cancer BN model."},
+    "fhir_version": {"type": "literal", "value": "4.0"},
+    "exec_type": {
+        "type": "uri",
+        "value": "https://fairmodels.org/ontology.owl#docker_execution",
+    },
+    "image_id": {
+        "type": "literal",
+        "value": "sha256:d1a150476cc5cb6424dacafc8b6ca4195ad41a81bd3d95a853d7ee95767004c8",
+    },
+    "host_env": {"type": "literal", "value": "linux"},
 }

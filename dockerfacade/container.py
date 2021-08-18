@@ -8,7 +8,7 @@ import docker
 from .exceptions import DockerEngineFailedException
 
 
-def run_model_container(image_name, image_id, invocation_url, port, secret_token):
+def run_model_container(image_name, image_id, port, secret_token, invocation_url):
     try:
         client = docker.from_env()
         client.containers.run(
@@ -20,7 +20,9 @@ def run_model_container(image_name, image_id, invocation_url, port, secret_token
                 "PORT=" + str(port),
                 "INVOCATION_HOST=" + invocation_url,
                 "SECRET_TOKEN=" + str(secret_token),
-                "TEMPLATE_DIR=template" "STATIC_DIR=static" "DEBUG=False",
+                "TEMPLATE_DIR=template",
+                "STATIC_DIR=static",
+                "DEBUG=False",
                 "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0",
             ],
         )
@@ -50,7 +52,7 @@ def generate_random_open_port():
     is_open = False
 
     while not is_open:
-        selected_port = randint(49152, 65535)
+        selected_port = randint(8000, 9000)
         is_open = is_port_available(host, selected_port)
 
     return selected_port

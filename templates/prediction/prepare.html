@@ -8,12 +8,12 @@
     <form action="{% url 'prediction_prepare' %}" method="post">
 
         {% csrf_token %}
-        <input type="hidden" id="fhir_endpoint" name="fhir_endpoint" value="{{fhir_endpoint|default_if_none:''}}">
+        <input type="hidden" id="fhir_endpoint_id" name="fhir_endpoint_id" value="{{fhir_endpoint_id|default_if_none:''}}">
         <input type="hidden" id="patient_id" name="patient_id" value="{{patient_id|default_if_none:''}}">
         <input type="hidden" id="selected_model_uri" name="selected_model_uri"
                value="{{selected_model_uri|default_if_none:''}}">
 
-        <div class="selected-patient-box">
+        <div class="data-box">
             <div class="padding">
                 <h2>Selected patient</h2>
                 <p>Name: {{patient_information.name}}</p>
@@ -57,6 +57,7 @@
     <br>
     <a href="/prediction/start" class="next-button">Back</a>
 </div>
+
 
 <script type="text/javascript">
 {% for input_item in model_input_list %}
