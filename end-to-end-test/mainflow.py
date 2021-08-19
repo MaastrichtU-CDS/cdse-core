@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 class TestMainFlow(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Remote(
-            command_executor="http://localhost:4444/wd/hub",
+            command_executor="http://192.168.100.9:4444/wd/hub",
             desired_capabilities={
                 "browserName": "firefox",
             },
@@ -18,10 +18,10 @@ class TestMainFlow(unittest.TestCase):
 
     def test_main_flow(self):
         driver = self.driver
-        driver.get("http://192.168.3.42:8000/")
+        driver.get("http://192.168.100.9/")
 
         # login procedure
-        self.login_local(driver)
+        self.login_keycloak(driver)
 
         # access main dashboard
         self.wait_for_element_with_id(driver, "content-main", 5)
@@ -101,21 +101,21 @@ class TestMainFlow(unittest.TestCase):
     def tearDown(self):
         self.driver.quit()
 
-    @staticmethod
-    def login_local(driver):
-        # login procedure
-        login_button = driver.find_element_by_link_text("login")
-        login_button.click()
-
-        login_input = driver.find_element_by_id("id_username")
-        login_input.send_keys("leroy")
-        password_input = driver.find_element_by_id("id_password")
-        password_input.send_keys("Qwerty1$")
-
-        login_button = driver.find_element_by_xpath(
-            "//input[@type='submit' and @value='Log in']"
-        )
-        login_button.click()
+    # @staticmethod
+    # def login_local(driver):
+    #     # login procedure
+    #     login_button = driver.find_element_by_link_text("login")
+    #     login_button.click()
+    #
+    #     login_input = driver.find_element_by_id("id_username")
+    #     login_input.send_keys("leroy")
+    #     password_input = driver.find_element_by_id("id_password")
+    #     password_input.send_keys("Qwerty1$")
+    #
+    #     login_button = driver.find_element_by_xpath(
+    #         "//input[@type='submit' and @value='Log in']"
+    #     )
+    #     login_button.click()
 
     @staticmethod
     def login_keycloak(driver):
