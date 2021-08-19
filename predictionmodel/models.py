@@ -13,10 +13,12 @@ class PredictionModelSession(models.Model):
     network_port = models.IntegerField(editable=False)
     image_name = models.CharField(max_length=2048, null=False)
     image_id = models.CharField(max_length=256, null=False)
+    container_id = models.CharField(max_length=64, null=True, default=None)
     model_uri = models.CharField(max_length=2048, null=False)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     data_source = models.ForeignKey(FhirEndpoint, on_delete=models.SET_NULL, null=True)
     calculation_complete = models.BooleanField(default=False, null=False)
+    advanced_view = models.BooleanField(default=False, null=False)
     error = models.TextField(null=True, default=None)
 
 

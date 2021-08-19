@@ -28,7 +28,7 @@ from .constants import (
     TEST_MODEL_OUTPUT_CHILD_PARAMETER,
     TEST_DOCKER_EXECUTION_DATA,
 )
-from ..constants import ERROR_PREDICTION_CALCULATION
+from ..constants import ERROR_PREDICTION_CALCULATION, WARNING_SESSION_ENDED
 from ..exceptions import CannotSaveModelInputException
 from ..models import PredictionModelSession, PredictionModelData, PredictionModelResult
 
@@ -139,7 +139,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         self.assertEqual(str(messages[0]), constants.NO_PREDICTION_MODEL_SELECTED)
 
     @patch(
-        "predictionmodel.views.run_model_container",
+        "predictionmodel.views.run_container",
         side_effect=DockerEngineFailedException(),
     )
     @patch(
@@ -150,7 +150,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
     @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_docker_error(
         self,
-        run_model_container_mock,
+        run_container_mock,
         create_prediction_session_mock,
         save_prediction_input_mock,
         get_all_models_mock,
@@ -205,7 +205,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), constants.ERROR_INPUT_DATA_SAVE_FAILED)
 
-    @patch("predictionmodel.views.run_model_container")
+    @patch("predictionmodel.views.run_container")
     @patch(
         "predictionmodel.views.get_model_execution_data",
         side_effect=SparqlQueryFailedException(),
@@ -213,7 +213,7 @@ class TestPredictionModelPrepareView(TransactionTestCase):
     @patch("predictionmodel.views.get_all_models", return_value=[])
     def test_post_with_model_execution_data_error(
         self,
-        run_model_container_mock,
+        run_container_mock,
         get_model_execution_data_mock,
         get_all_models_mock,
     ):
@@ -327,6 +327,57 @@ class TestPredictionModelResultView(TransactionTestCase):
         self.assertContains(resp, """<td>T0 Stage Finding</td>""", status_code=200)
         self.assertContains(resp, """<td>0.1</td>""", status_code=200)
         self.assertTemplateUsed(resp, "prediction/result.html")
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_results_without_advanced_view(self, get_model_output_data_mock):
+        self.prediction_session.advanced_view = False
+        self.prediction_session.save()
+
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertNotContains(resp, """iframe""", status_code=200)
+        self.assertNotContains(resp, WARNING_SESSION_ENDED, status_code=200)
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_results_with_advanced_view(self, get_model_output_data_mock):
+        self.prediction_session.container_id = "123"
+        self.prediction_session.advanced_view = True
+        self.prediction_session.save()
+
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertContains(
+            resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200
+        )
+        self.assertNotContains(resp, WARNING_SESSION_ENDED, status_code=200)
+
+    @patch(
+        "predictionmodel.views.get_model_output_data",
+        return_value=[TEST_MODEL_OUTPUT_PARAMETERS],
+    )
+    def test_get_results_ended_advanced_view(self, get_model_output_data_mock):
+        self.prediction_session.container_id = None
+        self.prediction_session.advanced_view = True
+        self.prediction_session.save()
+
+        resp = self.client.get(
+            reverse("prediction_result") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertNotContains(
+            resp, """<iframe class="not-visible"  id="advanced-view""", status_code=200
+        )
+        self.assertContains(resp, WARNING_SESSION_ENDED, status_code=200)
 
     def test_get_result_view_wrong_token(self):
         resp = self.client.get(reverse("prediction_result"))

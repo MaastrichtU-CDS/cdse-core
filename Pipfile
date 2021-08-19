@@ -25,6 +25,7 @@ docker = "*"
 rdflib = "*"
 sparqlwrapper = "*"
 selenium = "*"
+schedule = "*"
 
 [requires]
 python_version = "3.8"

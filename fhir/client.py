@@ -24,7 +24,7 @@ class Client:
                 self.smart.server
             )
 
-            return observation_list
+            return self._get_latest_observation(observation_list)
         except Exception:
             raise FhirEndpointFailedException()
 
@@ -36,3 +36,20 @@ class Client:
             return {"name": name, "birthdate": birthdate}
         except Exception:
             raise FhirEndpointFailedException()
+
+    @staticmethod
+    def _get_latest_observation(observation_list):
+        for outer_observation in observation_list:
+            for inner_observations in observation_list:
+                if (
+                    outer_observation is not inner_observations
+                    and outer_observation.code.coding[0].code
+                    == inner_observations.code.coding[0].code
+                    and outer_observation.code.coding[0].system
+                    == inner_observations.code.coding[0].system
+                    and outer_observation.effectiveDateTime.date
+                    < inner_observations.effectiveDateTime.date
+                ):
+                    observation_list.remove(outer_observation)
+
+        return observation_list

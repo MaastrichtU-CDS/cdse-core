@@ -11,13 +11,16 @@ from django.utils.decorators import method_decorator
 from datasource.models import FhirEndpoint
 from dockerfacade.container import (
     prepare_container_properties,
-    run_model_container,
+    run_container,
 )
 from dockerfacade.exceptions import DockerEngineFailedException
 from fhir.exceptions import FhirEndpointFailedException
 from fhir.client import Client as FhirClient
 from predictionmodel import constants
-from predictionmodel.constants import ERROR_PREDICTION_CALCULATION
+from predictionmodel.constants import (
+    ERROR_PREDICTION_CALCULATION,
+    WARNING_SESSION_ENDED,
+)
 from predictionmodel.exceptions import (
     InvalidInputException,
     NoPredictionModelSelectedException,
@@ -140,13 +143,16 @@ class PrepareModelWizard(TemplateView):
 
             save_prediction_input(request.POST, selected_model_uri, prediction_session)
 
-            run_model_container(
+            container = run_container(
                 prediction_session.image_name,
                 prediction_session.image_id,
                 prediction_session.network_port,
                 prediction_session.secret_token,
                 container_properties.get("invocation_url"),
             )
+
+            prediction_session.container_id = container.id
+            prediction_session.save()
 
             return redirect(
                 reverse("prediction_loading")
@@ -323,6 +329,7 @@ class ResultWizard(TemplateView):
             context["parent_results"] = parent_results
             context["child_results"] = child_results
             context["prediction_session"] = prediction_session
+            context["warning_session_ended"] = WARNING_SESSION_ENDED
             context["invocation_host"] = os.environ.get("INVOCATION_HOST", "localhost")
 
         except (ObjectDoesNotExist, InvalidSessionTokenException):

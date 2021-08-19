@@ -8,10 +8,10 @@ import docker
 from .exceptions import DockerEngineFailedException
 
 
-def run_model_container(image_name, image_id, port, secret_token, invocation_url):
+def run_container(image_name, image_id, port, secret_token, invocation_url):
     try:
         client = docker.from_env()
-        client.containers.run(
+        return client.containers.run(
             image_name + "@" + image_id,
             auto_remove=True,
             detach=True,
@@ -30,11 +30,20 @@ def run_model_container(image_name, image_id, port, secret_token, invocation_url
         raise DockerEngineFailedException()
 
 
+def stop_container(container_id):
+    try:
+        client = docker.from_env()
+        container = client.containers.get(container_id)
+        container.stop()
+    except Exception:
+        raise DockerEngineFailedException()
+
+
 def prepare_container_properties(image_name, image_id):
     invocation_host = "http://" + os.environ.get("INVOCATION_HOST", "localhost")
     invocation_port = ":" + os.environ.get("INVOCATION_PORT", "8000")
     api_route = "/api/v1"
-    port = generate_random_open_port()
+    port = _generate_random_open_port()
     secret_token = uuid.uuid4()
     invocation_url = invocation_host + invocation_port + api_route
 
@@ -47,18 +56,18 @@ def prepare_container_properties(image_name, image_id):
     }
 
 
-def generate_random_open_port():
+def _generate_random_open_port():
     host = os.environ.get("INVOCATION_HOST", "localhost")
     is_open = False
 
     while not is_open:
         selected_port = randint(8000, 9000)
-        is_open = is_port_available(host, selected_port)
+        is_open = _is_port_available(host, selected_port)
 
     return selected_port
 
 
-def is_port_available(host, selected_port):
+def _is_port_available(host, selected_port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(2)
     result = sock.connect_ex((host, selected_port))

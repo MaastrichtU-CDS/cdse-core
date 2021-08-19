@@ -36,6 +36,7 @@ def post_model_result(request):
         body_unicode = request.body.decode("utf-8")
         body = json.loads(body_unicode)
         output_data_list = get_model_output_data(prediction_session.model_uri)
+        advanced_view = body.get("has_result_page", False)
 
         for output_item in output_data_list:
             parent_result_item = body.get(output_item.parameter)
@@ -60,6 +61,7 @@ def post_model_result(request):
                     session=None,
                 )
         prediction_session.calculation_complete = True
+        prediction_session.advanced_view = advanced_view
         prediction_session.save()
         return Response(status=status.HTTP_200_OK)
 
