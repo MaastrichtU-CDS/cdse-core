@@ -28,7 +28,7 @@ from .constants import (
     TEST_MODEL_OUTPUT_CHILD_PARAMETER,
     TEST_DOCKER_EXECUTION_DATA,
 )
-from ..constants import ERROR_PREDICTION_CALCULATION_TIME_OUT
+from ..constants import ERROR_PREDICTION_CALCULATION
 from ..exceptions import CannotSaveModelInputException
 from ..models import PredictionModelSession, PredictionModelData, PredictionModelResult
 
@@ -242,22 +242,44 @@ class TestPredictionModelLoadingView(TransactionTestCase):
         User.objects.create_superuser("admin", "admin@example.com", "Password123")
         self.client = Client()
         self.client.login(username="admin", password="Password123")
+        self.uuid = uuid.uuid4()
+        self.prediction_session = PredictionModelSession.objects.create(
+            secret_token=self.uuid, network_port=1001, user=None
+        )
 
     def tearDown(self):
         self.client.logout()
 
     def test_get_loading_view(self):
-        resp = self.client.get(reverse("prediction_loading"))
-
-        self.assertEqual(
-            resp.context["error_message"], ERROR_PREDICTION_CALCULATION_TIME_OUT
+        resp = self.client.get(
+            reverse("prediction_loading") + "?session_token=" + str(self.uuid)
         )
-        self.assertEqual(resp.context["time_out_milliseconds"], 8000)
+
+        self.assertEqual(resp.context["error_message"], ERROR_PREDICTION_CALCULATION)
         self.assertContains(
             resp, """<h1 class="loading-text">Please wait...</h1>""", status_code=200
         )
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, "prediction/loading.html")
+
+    def test_loading_view_error(self):
+        self.prediction_session.error = "A error occurred"
+
+        self.prediction_session.save()
+        self.prediction_session.refresh_from_db()
+
+        resp = self.client.get(
+            reverse("prediction_loading") + "?session_token=" + str(self.uuid)
+        )
+
+        self.assertEqual(resp.context["error_message"], ERROR_PREDICTION_CALCULATION)
+        self.assertNotContains(
+            resp, """<h1 class="loading-text">Please wait...</h1>""", status_code=200
+        )
+        self.assertContains(
+            resp, """<h1>%s</h1>""" % ERROR_PREDICTION_CALCULATION, status_code=200
+        )
+        self.assertEqual(resp.status_code, 200)
 
 
 class TestPredictionModelResultView(TransactionTestCase):

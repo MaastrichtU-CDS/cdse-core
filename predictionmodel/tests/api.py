@@ -20,9 +20,6 @@ from ..models import PredictionModelSession, PredictionModelData, PredictionMode
 
 
 class TestPredictionApi(TransactionTestCase):
-    client = None
-    uuid = None
-
     def setUp(self) -> None:
         self.client = Client()
         self.uuid = uuid.uuid4()
@@ -122,7 +119,9 @@ class TestPredictionApi(TransactionTestCase):
         response = self.client.get(reverse("check_result"), **headers)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.json(), False)
+        self.assertEqual(
+            response.json(), {"calculation_complete": False, "error": None}
+        )
 
     @responses.activate
     def test_check_calculation_complete(self):
@@ -134,12 +133,36 @@ class TestPredictionApi(TransactionTestCase):
         response = self.client.get(reverse("check_result"), **headers)
 
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.json(), True)
+        self.assertEqual(response.json(), {"calculation_complete": True, "error": None})
 
     @responses.activate
     def test_check_calculation_wrong_token(self):
         headers = {"HTTP_AUTHORIZATION": "secret"}
 
         response = self.client.get(reverse("check_result"), **headers)
+
+        self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
+
+    @responses.activate
+    def test_calculation_error(self):
+        headers = {"HTTP_AUTHORIZATION": str(self.uuid)}
+        test_error_message = "There was a error"
+        response = self.client.post(
+            reverse("calculation_error"),
+            data=json.dumps({"error_message": test_error_message}),
+            content_type="application/json",
+            **headers
+        )
+
+        self.prediction_session.refresh_from_db()
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(self.prediction_session.error, test_error_message)
+
+    @responses.activate
+    def test_calculation_error_wrong_token(self):
+        headers = {"HTTP_AUTHORIZATION": "secret"}
+
+        response = self.client.post(reverse("calculation_error"), **headers)
 
         self.assertEqual(response.status_code, HTTP_403_FORBIDDEN)
