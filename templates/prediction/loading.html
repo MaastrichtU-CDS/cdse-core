@@ -1,11 +1,11 @@
 {% extends "admin/base.html" %}
-
+{% block title %}Prediction - Loading{% endblock %}
 {% block content %}
 <div class="wizard-main">
   {% if prediction_session.error is None or prediction_session.error == "" %}
   <div class="loader"></div>
   <br>
-  <h1 class="loading-text">Please wait...</h1>
+  <h1 class="loading-text" id="loader">Please wait...</h1>
   {% else %}
   <h1>{{ error_message }}</h1>
   {% endif %}
