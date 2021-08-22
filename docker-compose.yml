@@ -8,6 +8,7 @@ services:
       - 8000
     volumes:
       - static_volume:/app/static
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ./.env.cdse.prod
     depends_on:
@@ -48,3 +49,4 @@ services:
 volumes:
   postgres_data:
   static_volume:
+  docker_sock:
