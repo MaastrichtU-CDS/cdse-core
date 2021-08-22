@@ -26,7 +26,8 @@ def run_container(image_name, image_id, port, secret_token, invocation_url):
                 "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0",
             ],
         )
-    except Exception:
+    except Exception as ex:
+        print(ex)
         raise DockerEngineFailedException()
 
 
