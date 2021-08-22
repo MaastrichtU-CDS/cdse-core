@@ -39,7 +39,7 @@ class TestMainFlow(unittest.TestCase):
         select_fhir_endpoint_dropdown = Select(
             driver.find_element_by_id("fhir_endpoint_id")
         )
-        select_fhir_endpoint_dropdown.select_by_value("3")
+        select_fhir_endpoint_dropdown.select_by_value("1")
 
         patient_id_input = driver.find_element_by_id("patient_id")
         patient_id_input.send_keys("1")
