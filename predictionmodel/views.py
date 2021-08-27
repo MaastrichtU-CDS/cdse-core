@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Any, Dict
 
@@ -51,7 +52,8 @@ class StartModelWizard(TemplateView):
 
         try:
             context["prediction_models"] = get_all_models()
-        except SparqlQueryFailedException:
+        except SparqlQueryFailedException as ex:
+            logging.error("Sparql query failed exception: {}".format(ex))
             messages.add_message(
                 self.request, messages.ERROR, constants.ERROR_GET_MODEL_LIST_FAILED
             )
@@ -99,18 +101,21 @@ class PrepareModelWizard(TemplateView):
             )
 
         except InvalidInputException as ex:
+            logging.warning("Invalid input exception: {}".format(ex))
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 constants.ERROR_REQUIRED_INPUT_NOT_FOUND + ex.input_parameter,
             )
-        except FhirEndpointFailedException:
+        except FhirEndpointFailedException as ex:
+            logging.error("Fhir-endpoint failed exception: {}".format(ex.message))
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 constants.ERROR_GET_DATA_FROM_FHIR_FAILED,
             )
-        except Exception:
+        except Exception as ex:
+            logging.error("Exception: {}".format(ex))
             messages.add_message(
                 self.request,
                 messages.ERROR,
@@ -160,31 +165,37 @@ class PrepareModelWizard(TemplateView):
                 + str(prediction_session.secret_token)
             )
 
-        except DockerEngineFailedException:
+        except DockerEngineFailedException as ex:
+            logging.error("Docker engine failed exception: {}".format(ex))
             messages.add_message(
                 request, messages.ERROR, constants.ERROR_PREDICTION_MODEL_FAILED
             )
-        except SparqlQueryFailedException:
+        except SparqlQueryFailedException as ex:
+            logging.error("Sparql query failed exception: {}".format(ex))
             messages.add_message(
                 request,
                 messages.ERROR,
                 constants.ERROR_GET_MODEL_DESCRIPTION_DETAILS_FAILED,
             )
-        except NoPredictionModelSelectedException:
+        except NoPredictionModelSelectedException as ex:
+            logging.warning("No prediction model selected exception: {}".format(ex))
             messages.add_message(
                 request, messages.ERROR, constants.NO_PREDICTION_MODEL_SELECTED
             )
-        except CannotSaveModelInputException:
+        except CannotSaveModelInputException as ex:
+            logging.error("Cannot save model input exception: {}".format(ex))
             messages.add_message(
                 request, messages.ERROR, constants.ERROR_INPUT_DATA_SAVE_FAILED
             )
         except InvalidInputException as ex:
+            logging.error("Invalid input exception: {}".format(ex))
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 constants.ERROR_REQUIRED_INPUT_NOT_FOUND + ex.input_parameter,
             )
-        except Exception:
+        except Exception as ex:
+            logging.error("Exception: {}".format(ex))
             messages.add_message(
                 request,
                 messages.ERROR,
@@ -289,13 +300,15 @@ class LoadingWizard(TemplateView):
             context["prediction_session"] = _get_prediction_session(secret_token)
             context["error_message"] = ERROR_PREDICTION_CALCULATION
 
-        except InvalidSessionTokenException:
+        except InvalidSessionTokenException as ex:
+            logging.warning("Invalid session token exception: {}".format(ex))
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 constants.ERROR_PROVIDED_SESSION_TOKEN_INVALID,
             )
-        except Exception:
+        except Exception as ex:
+            logging.error("Exception: {}".format(ex))
             messages.add_message(self.request, messages.ERROR, constants.ERROR_UNKNOWN)
 
         return context
@@ -332,14 +345,16 @@ class ResultWizard(TemplateView):
             context["warning_session_ended"] = WARNING_SESSION_ENDED
             context["invocation_host"] = os.environ.get("INVOCATION_HOST", "localhost")
 
-        except (ObjectDoesNotExist, InvalidSessionTokenException):
+        except (ObjectDoesNotExist, InvalidSessionTokenException) as ex:
+            logging.warning("Invalid session token exception: {}".format(ex))
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 constants.ERROR_PROVIDED_SESSION_TOKEN_INVALID,
             )
 
-        except Exception:
+        except Exception as ex:
+            logging.error("Exception: {}".format(ex))
             messages.add_message(self.request, messages.ERROR, constants.ERROR_UNKNOWN)
 
         return context

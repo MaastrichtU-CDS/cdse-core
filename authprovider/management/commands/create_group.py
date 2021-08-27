@@ -12,7 +12,7 @@ class Command(BaseCommand):
         for group_name in RolesAndPermissions.GROUPS:
 
             new_group, created = Group.objects.get_or_create(name=group_name)
-            print(group_name, "group already exists:", not created)
+            logging.info("{} group already exists: {}".format(group_name, not created))
 
             # Loop models in group
             if created is True:
@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
                         # Generate permission name as Django would generate it
                         name = "Can {} {}".format(permission_name, app_model)
-                        print("Creating {}".format(name))
+                        logging.info("Creating {}".format(name))
 
                         try:
                             model_add_perm = Permission.objects.get(name=name)

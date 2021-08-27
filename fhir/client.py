@@ -25,8 +25,8 @@ class Client:
             )
 
             return self._get_latest_observation(observation_list)
-        except Exception:
-            raise FhirEndpointFailedException()
+        except Exception as ex:
+            raise FhirEndpointFailedException(ex)
 
     def get_patient_name_and_birthdate(self, patient_id):
         try:
@@ -34,8 +34,8 @@ class Client:
             name = self.smart.human_name(found_patient.name[0])
             birthdate = found_patient.birthDate.isostring
             return {"name": name, "birthdate": birthdate}
-        except Exception:
-            raise FhirEndpointFailedException()
+        except Exception as ex:
+            raise FhirEndpointFailedException(ex)
 
     @staticmethod
     def _get_latest_observation(observation_list):

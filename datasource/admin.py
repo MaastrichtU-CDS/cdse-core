@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from fhirclient import client
@@ -27,7 +29,8 @@ class FhirEndpointAdmin(admin.ModelAdmin):
                 )
                 FhirEndpoint.supported_version_check(meta_resp.fhirVersion)
 
-            except FHIRIncompatibleVersionException:
+            except FHIRIncompatibleVersionException as ex:
+                logging.warning("Incompatible FHIR version exception: {}".format(ex))
                 messages.add_message(
                     request,
                     messages.WARNING,
@@ -65,6 +68,7 @@ class FhirEndpointAdmin(admin.ModelAdmin):
                             constants.TEST_ERROR_404,
                         )
                 else:
+                    logging.warning("Tested FHIR-endpoint exception: {}".format(ex))
                     messages.add_message(
                         request, messages.ERROR, constants.TEST_ERROR_UNKNOWN
                     )
