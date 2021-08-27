@@ -16,8 +16,8 @@ services:
       options:
         splunk-url: "${SPLUNK_URL}"
         splunk-token: "${SPLUNK_TOKEN}"
-        splunk-insecureskipverify: true
-        splunk-verify-connection: true
+        splunk-insecureskipverify: True
+        splunk-verify-connection: True
     depends_on:
       - db
   nginx:
