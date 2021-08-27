@@ -11,6 +11,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ./.env.cdse.prod
+    logging:
+      driver: "splunk-logging-plugin"
+      options:
+        splunk-url: "${SPLUNK_URL}"
+        splunk-token: "${SPLUNK_TOKEN}"
+        splunk-insecureskipverify: true
+        splunk-verify-connection: true
     depends_on:
       - db
   nginx:
