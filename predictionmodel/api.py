@@ -104,7 +104,7 @@ def _get_prediction_session(request):
 
     try:
         prediction_session = PredictionModelSession.objects.get(
-            secret_token=secret_token
+            secret_token=secret_token, container_id__isnull=False
         )
         return prediction_session
 
