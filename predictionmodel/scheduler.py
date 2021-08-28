@@ -1,39 +1,17 @@
-import os
-import threading
-import time
+import logging
 import schedule
 from django.utils import timezone
 from datetime import timedelta
 
 from dockerfacade.container import stop_container
 from dockerfacade.exceptions import DockerEngineFailedException
-from predictionmodel.constants import (
-    ERROR_STOPPING_CONTAINER,
-    ERROR_CHANGING_PREDICTION_MODEL_CONTAINER_ID,
-)
+
 from predictionmodel.models import PredictionModelSession
 from django.db.models import Q
 
 
-def run_scheduler(interval=1):
-    cease_continuous_run = threading.Event()
-
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not cease_continuous_run.is_set():
-                schedule.run_pending()
-                time.sleep(interval)
-
-    continuous_thread = ScheduleThread()
-    continuous_thread.start()
-    return cease_continuous_run
-
-
 def remove_finished_containers():
-    time_threshold = timezone.now() - timedelta(
-        minutes=os.environ.get("CONTAINER_LIFETIME_MINUTES", 30)
-    )
+    time_threshold = timezone.now() - timedelta(minutes=30)
     prediction_sessions = PredictionModelSession.objects.filter(
         Q(
             created_at__lt=time_threshold,
@@ -46,14 +24,14 @@ def remove_finished_containers():
     for prediction_session in prediction_sessions:
         try:
             stop_container(prediction_session.container_id)
-        except DockerEngineFailedException:
-            print(ERROR_STOPPING_CONTAINER)
+        except DockerEngineFailedException as ex:
+            logging.error("Exception stopping docker container: {}".format(ex))
 
         try:
             prediction_session.container_id = None
             prediction_session.save()
-        except Exception:
-            print(ERROR_CHANGING_PREDICTION_MODEL_CONTAINER_ID)
+        except Exception as ex:
+            logging.error("Exception: {}".format(ex))
 
 
 # Configure jobs

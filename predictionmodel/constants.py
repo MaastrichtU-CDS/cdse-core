@@ -12,6 +12,4 @@ ERROR_INPUT_DATA_SAVE_FAILED = "The model input cannot be saved, please inform I
 ERROR_PROVIDED_SESSION_TOKEN_INVALID = "The provided session token was not valid!"
 ERROR_PREDICTION_CALCULATION = "Error in prediction calculation, please inform IT!"
 ERROR_UNKNOWN = "Something went wrong please inform IT!"
-ERROR_STOPPING_CONTAINER = "A error occurred when stopping the docker container."
-ERROR_CHANGING_PREDICTION_MODEL_CONTAINER_ID = "Cannot set container ID to None"
 WARNING_SESSION_ENDED = "The advanced view feature is disabled for this session, please restart to enable this again."
