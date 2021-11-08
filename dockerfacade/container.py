@@ -23,7 +23,7 @@ def run_container(image_name, image_id, port, secret_token, invocation_url):
                 "TEMPLATE_DIR=template",
                 "STATIC_DIR=static",
                 "DEBUG=False",
-                "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0 192.168.100.9",
+                "ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0 192.168.56.1",
             ],
         )
     except Exception as ex:

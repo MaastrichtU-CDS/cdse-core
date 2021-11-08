@@ -19,7 +19,7 @@ class Client:
             observation_list: List[
                 observation.Observation
             ] = observation.Observation.where(
-                struct={"patient": patient_id}
+                struct={"patient": patient_id, "status": "final"}
             ).perform_resources(
                 self.smart.server
             )
