@@ -23,9 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-secure-)x!wszkl9dw$3)o!6dfz#4uz(_^k7(x#_&rs*27brtf71v%3k+"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = os.environ.get(
+    "DJANGO_ALLOWED_HOSTS", default="localhost 127.0.0.1"
+).split(" ")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.56.1"]
+DEBUG = int(os.environ.get("DEBUG", default=True))
+
 LOGIN_REDIRECT_URL = "/admin"
 
 # Application definition

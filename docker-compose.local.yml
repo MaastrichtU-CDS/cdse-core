@@ -4,47 +4,11 @@ services:
   web:
     build: .
     entrypoint: ./docker-entrypoint.sh
-    expose:
-      - 8000
+    ports:
+      - 8000:8000
     volumes:
       - static_volume:/app/static
     env_file:
       - ./.env.cdse.prod
-    depends_on:
-      - db
-  nginx:
-    build: ./nginx
-    volumes:
-      - static_volume:/app/static
-    ports:
-      - 80:80
-    depends_on:
-      - web
-      - db
-  keycloak:
-    image: jboss/keycloak:13.0.0
-    env_file:
-      - ./.env.keycloak.prod
-    ports:
-      - 8080:8080
-    depends_on:
-      - db
-  db:
-    image: postgres:12.3-alpine
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "cdser" ]
-      timeout: 45s
-      interval: 10s
-      retries: 10
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/12/data/
-      - ./db-init-scripts:/docker-entrypoint-initdb.d/
-    env_file:
-      - ./.env.db.prod
-      - ./.env.cdse.prod
-      - ./.env.keycloak.prod
 volumes:
-  postgres_data:
   static_volume:
